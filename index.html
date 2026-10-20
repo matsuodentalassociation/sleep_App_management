@@ -3,2618 +3,453 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SomnoLog</title>
+<meta name="referrer" content="no-referrer">
+<meta name="somnolog-app" content="clinic">
+<meta name="somnolog-version" content="7">
+<title>② 診療所用患者QR発行 V7</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
 <style>
-:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;background:#101419;color:#f0eee6}
-*{box-sizing:border-box}body{margin:0}button{font:inherit;cursor:pointer}
-[hidden]{display:none!important}button:disabled{cursor:not-allowed}
-button:focus-visible,[tabindex]:focus-visible{outline:3px solid #9bd5ff;outline-offset:4px}
-#capture-screen{width:100%;max-width:480px;min-height:100svh;margin:auto;padding:28px 20px;display:flex;flex-direction:column;gap:28px}
-#capture-screen h1{margin:0;font-size:23px;letter-spacing:.02em}
-#capture-screen .meters{padding:22px;background:#192029;border:1px solid #2c3744;border-radius:20px}
-#capture-screen .signal+.signal{margin-top:26px}
-#capture-screen .label{margin-bottom:10px;color:#bec8d3;font-size:14px}
-#capture-screen .wave{height:72px;background:#111820;border-radius:12px;overflow:hidden}
-#capture-screen svg{width:100%;height:100%;display:block}
-#capture-screen .permission{width:100%;min-height:50px;margin-top:12px;padding:12px;background:#253c50;color:#e5f1fb;border:1px solid #4a7596;border-radius:12px;font-size:14px;font-weight:600}
-#capture-screen .permission:hover{background:#304c64}
-#capture-screen .controls{margin-top:auto;display:grid;gap:12px}
-#capture-screen .row{display:grid;grid-template-columns:2fr 1fr;gap:12px}
-#capture-screen .control{min-height:62px;border:1px solid #3c495a;border-radius:15px;font-size:17px;font-weight:600}
-#capture-screen .start{background:#84b9cf;color:#10202a;border-color:#84b9cf}
-#capture-screen .start:disabled{background:#294354;color:#99aebb;border-color:#355268}
-#capture-screen .stop{background:#222a34;color:#8390a0}
-#capture-screen .black{min-height:54px;background:#151b23;color:#8390a0;font-size:15px}
-#capture-screen .history{min-height:54px;background:#253c50;color:#e5f1fb;border-color:#45576a;font-size:15px}
-#capture-screen .history:disabled{opacity:.45}
-#capture-screen .usage{width:100%;min-height:54px;padding:14px 20px;border:1px solid #726b59;border-radius:15px;background:#343129;color:#f3e7c9;font-size:15px;font-weight:600}
-#capture-screen .usage:hover{background:#454034}
-#usage-dialog,#preview-dialog{width:calc(100% - 32px);max-width:440px;max-height:85svh;overflow:auto;padding:26px;background:#192029;color:#f0eee6;border:1px solid #3c495a;border-radius:20px}
-dialog::backdrop{background:rgba(0,0,0,.75)}
-#usage-dialog h2,#preview-dialog h2{margin:0 0 22px;font-size:21px}
-#usage-dialog ol{margin:0;padding-left:24px}
-#usage-dialog li{padding-left:4px;margin-bottom:18px;line-height:1.8;color:#d1d7de}
-#usage-dialog li strong{color:#f0eee6}
-#usage-dialog p,#preview-dialog p{line-height:1.8;color:#d1d7de}
-.close{width:100%;min-height:48px;margin-top:12px;background:#293644;color:#f0eee6;border:1px solid #45576a;border-radius:12px}
-.app{max-width:480px;min-height:100svh;margin:auto;padding:28px 20px;display:flex;flex-direction:column;gap:24px}
-.app .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.app h1{margin:0;font-size:23px}.app h2{margin:22px 0 10px;font-size:20px}
-.badge{padding:7px 12px;border-radius:20px;background:#263b38;color:#bfdbd1;font-size:13px;white-space:nowrap}
-.subtitle,.note{margin:0;color:#aebbc9;font-size:13px;line-height:1.8}
-.note{font-size:11px;color:#8392a2}
-.panel,.card{background:#192029;border:1px solid #2c3744;border-radius:16px;padding:18px}
-.action{width:100%;min-height:56px;padding:14px 18px;border-radius:15px;border:1px solid #45576a;font-weight:600;font-size:16px}
-.action:disabled{opacity:.45}
-.primary{background:#84b9cf;color:#10202a;border-color:#84b9cf}
-.secondary{background:#253c50;color:#e5f1fb}.back{background:#1b232d;color:#d3dde7}
-.app .usage{background:#343129;color:#f3e7c9;border-color:#726b59}
-.actions,.bottom{display:grid;gap:12px}.bottom{margin-top:auto;padding-top:12px}
-.record-range{margin:0;padding:14px 10px;border-left:3px solid #84b9cf;background:#192029;border-radius:0 12px 12px 0;color:#f3e7c9;font-size:13px;line-height:1.8;white-space:nowrap;overflow-x:auto}
-.duration{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-top:16px}
-.app .label{color:#b7c2ce;font-size:14px}
-.value{color:#f3e7c9;font-size:23px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
-.value small{font-size:14px;font-weight:400}
-.totals{margin:18px 0 0;padding-top:16px;border-top:1px solid #303b48;display:grid;grid-template-columns:1fr auto;gap:18px 12px;align-items:baseline}
-dt{color:#c5cfd9;font-size:14px}dd{margin:0;text-align:right}
-.switch{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;background:#101923;border:1px solid #303b48;border-radius:13px;margin-bottom:12px}
-.switch button{min-height:44px;padding:10px 4px;border:0;border-radius:9px;background:transparent;color:#aebbc9;font-size:14px}
-.switch button.active{background:#253c50;color:#e5f1fb}
-.hint{margin:0 0 16px;color:#b7c2ce;font-size:12px;line-height:1.8;min-height:22px}
-.month-nav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
-.month-title{margin:0;font-size:20px}
-.arrow{width:44px;min-height:44px;padding:0;background:#25313e;color:#d3dde7;border:1px solid #45576a;border-radius:12px;font-size:25px}
-.weekdays,.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
-.weekdays{margin-bottom:8px}.weekdays span{text-align:center;padding:5px 0;font-size:12px;color:#aebbc9}
-.weekdays .sun,.day.sun{color:#d8a6a1}.weekdays .sat,.day.sat{color:#84b9cf}
-.day{min-height:48px;padding:6px 0;border:1px solid transparent;border-radius:10px;background:transparent;color:#e0e6ec;font-size:15px;font-weight:400;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-.day:hover{background:#263341}.day.today{border-color:#64798b}
-.day.in-range{background:#253c50;color:#e5f1fb}
-.day.selected{background:#84b9cf;color:#10202a;font-weight:700;border-color:#84b9cf}
-.dot{height:5px;width:5px;border-radius:50%;background:#84b9cf}
-.dot.empty{background:transparent}.selected .dot:not(.empty){background:#10202a}
-.legend{margin-top:16px;padding-top:14px;border-top:1px solid #303b48;display:flex;align-items:center;gap:8px;color:#aebbc9;font-size:11px;flex-wrap:wrap}
-.legend-today{width:12px;height:12px;border:1px solid #64798b;border-radius:3px;margin-left:8px}
-.range-tools{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:14px}
-.range-label{color:#bfdbd1;font-size:12px;line-height:1.7}
-.reset{min-height:36px;padding:7px 10px;background:#1b232d;color:#aebbc9;font-size:12px;border:1px solid #45576a;border-radius:8px}
-.section-title{font-size:17px;margin:0 0 12px;line-height:1.7}
-.share-panel{padding:16px;background:#192029;border:1px solid #2c3744;border-radius:16px;margin:16px 0}
-.share-panel p{margin:0 0 12px;font-size:12px;color:#aebbc9;line-height:1.8}
-.card{margin-bottom:12px}.saved{font-size:12px;color:#bfdbd1}
-.card-time{margin:12px 0 0;color:#f3e7c9;font-size:13px;line-height:1.8;font-variant-numeric:tabular-nums}
-.timeline{margin:18px 0 0;padding-top:16px;border-top:1px solid #303b48}
-.timeline-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
-.timeline-title{font-size:14px;font-weight:600;color:#c5cfd9}
-.sample{font-size:10px;color:#c9bea6;background:#343129;padding:3px 6px;border-radius:5px}
-.chart{background:#101923;border:1px solid #2c3744;border-radius:12px;overflow:hidden;padding:10px 6px 8px}
-.chart svg{display:block;width:100%;height:auto}
-.endpoints{display:flex;justify-content:space-between;margin-top:10px;font-size:12px;line-height:1.7;color:#aebbc9}
-.endpoints strong{display:block;color:#f3e7c9;font-size:13px;font-weight:500}
-.endpoints>div:last-child{text-align:right}
-.empty-state{border:1px dashed #3c495a;border-radius:16px;padding:24px 14px;text-align:center;font-size:14px;color:#aebbc9;line-height:1.8}
-.flow-dialog{width:calc(100% - 32px);max-width:440px;max-height:calc(100svh - 40px);overflow-y:auto;background:#192029;color:#f0eee6;border:1px solid #3c495a;border-radius:20px;padding:24px}
-.flow-dialog h2{margin:0 0 12px;font-size:21px}
-.flow-dialog p,.flow-dialog li{font-size:13px;line-height:1.8;color:#c5cfd9}
-.zip-summary{padding:14px;background:#101923;border-radius:12px;margin:16px 0}
-.zip-summary strong{display:block;color:#f3e7c9;font-size:15px;margin-bottom:6px}
-.filename{font-size:11px;color:#aebbc9;overflow-wrap:anywhere}
-.choice{display:block;text-align:left}
-.choice small{display:block;font-size:12px;font-weight:400;margin-top:6px;line-height:1.7}
-.footer{margin-top:20px;padding-top:18px;border-top:1px solid #303b48}
-.warning{padding:12px;border-left:3px solid #b9a67e;background:#292820;border-radius:0 8px 8px 0}
-#black-screen{position:fixed;inset:0;z-index:100;background:#080a0c;display:flex;align-items:center;justify-content:center;padding:24px;touch-action:manipulation}
-#black-screen[data-clock-state="off"]{background:#000}
-.black-content{width:100%;max-width:400px;text-align:center}
-#black-clock{display:block;font-size:72px;font-weight:300;letter-spacing:2px;font-variant-numeric:tabular-nums;color:#756f61}
-#black-screen[data-clock-state="bright"] #black-clock{color:#f3e7c9}
-#black-back{min-height:48px;margin-top:28px;padding:12px 24px;background:transparent;border:1px solid #514c41;border-radius:14px;color:#aaa18e;font-size:14px}
-#black-screen[data-clock-state="off"] .black-content{visibility:hidden}
-@media(max-width:360px){
-  .app{padding:24px 14px}.calendar{padding:14px 10px}.day{min-height:44px}
-  .card{padding:14px}.flow-dialog{padding:20px}.record-range{font-size:12px}#black-clock{font-size:60px}
-}
+:root{--ink:#203c4c;--muted:#70828d;--brand:#137e83;--line:#dce6e9;--bg:#f2f6f7;--pale:#e9f5f3}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,"Noto Sans JP",sans-serif}
+button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+.version{background:#203c4c;color:white;padding:8px;text-align:center;font-size:12px;font-weight:700}
+main{max-width:1080px;margin:0 auto;padding:24px 24px 50px}
+.heading{margin-bottom:22px}
+.headingline{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+.header-clinic{font-size:27px;font-weight:700;overflow-wrap:anywhere}
+h1{font-size:27px;margin:0}h2{font-size:18px;margin:0}h3{font-size:15px;margin:0 0 12px}
+p{line-height:1.8;margin:8px 0}.muted{color:var(--muted);font-size:12px}
+.notice{font-size:12px;line-height:1.8;padding:12px 16px;border:1px solid #eadbb7;background:#fffaef;border-radius:8px;color:#81622e;margin:16px 0 24px}
+.error{background:#fff0f0;color:#a33434;border-color:#e8b9b9}
+.steps{display:flex;gap:8px;margin-bottom:24px}
+.step{flex:1;color:#80909b;background:#e9eef1;padding:12px;border-radius:8px;font-size:12px}
+.step b{display:inline-grid;place-items:center;background:white;width:24px;height:24px;border-radius:50%;margin-right:8px}
+.step.active{background:#dff0ed;color:#176e66;font-weight:700}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px}
+.panel{border:1px solid var(--line);border-radius:14px;background:white;padding:24px;margin-bottom:20px}
+.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
+.facts{display:grid;grid-template-columns:112px 1fr;gap:16px;font-size:14px;margin:24px 0}
+.facts dt{color:var(--muted)}.facts dd{margin:0;overflow-wrap:anywhere}
+.field{margin-top:22px}label{display:block;font-weight:700;font-size:13px}
+.required{color:#a65b3b;background:#fff0e8;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px}
+.optional{color:#87969f;font-size:11px;font-weight:400;margin-left:8px}
+input,textarea{width:100%;margin-top:9px;border:1px solid #c8d6dd;background:white;border-radius:8px;padding:12px;color:var(--ink)}
+input:focus,textarea:focus{outline:3px solid #cae6e3;border-color:var(--brand)}
+small{display:block;font-size:11px;color:var(--muted);font-weight:400;line-height:1.7;margin-top:7px}
+.segmented{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+.mode{color:#176d66;border:2px solid var(--brand);border-radius:9px;padding:13px;background:#f0f9f7;text-align:left}
+.mode strong{display:block;font-size:14px}.mode span{font-size:11px;display:block;margin-top:5px}
+.countrow{display:flex;align-items:center;gap:10px;margin-top:12px}.countrow input{width:100px;margin:0;text-align:center}
+.checklabel{display:flex;align-items:flex-start;gap:10px;font-weight:400;line-height:1.7;margin-top:24px}
+.checklabel input{width:17px;height:17px;margin:3px 0 0;flex:none;accent-color:var(--brand)}
+.btn{border:0;border-radius:8px;padding:13px 18px;background:var(--brand);color:white;font-weight:700;text-decoration:none;display:inline-block}
+.btn.secondary{background:#eaf1f4;color:#3a6273}.btn.outline{background:white;border:1px solid #cbd9df;color:#54707e}
+.wide{width:100%}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions .btn{flex:1}
+.preview{text-align:center}.preview h2{font-size:17px}
+.qrplaceholder{width:210px;height:210px;max-width:100%;margin:24px auto;border:2px dashed #d8e3e6;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#f8fafb;color:#8a9ba6;line-height:1.9;font-size:12px}
+.qr{display:flex;justify-content:center;padding:16px;background:white;margin:16px auto;width:242px;max-width:100%}
+.qr img,.qr canvas{max-width:100%;height:auto}
+.help{display:flex;gap:12px;margin-top:15px;align-items:flex-start}
+.num{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#eaf1f4;font-size:11px;color:#527384;font-weight:800}
+.help p{margin:0;font-size:12px;color:#6b818d}
+.footnote{text-align:center;color:#8a99a2;font-size:11px;margin-top:20px}
+.success{background:#eaf6ef;color:#397754;padding:11px;border-radius:7px;font-size:12px;margin:16px 0}
+.patientname{font-size:22px;font-weight:800;margin:15px 0 3px;overflow-wrap:anywhere}
+.usagebadge{display:inline-block;background:#edf3f8;color:#486b87;padding:5px 12px;border-radius:6px;font-size:12px;margin-top:10px}
+.state{border-top:1px solid #e5edef;padding-top:13px;margin-top:15px;font-size:11px;color:#7e909b}
+.badge{font-size:11px;background:var(--pale);color:#21736e;border-radius:20px;padding:6px 11px;display:inline-block;font-weight:700}
+dialog{border:0;border-radius:15px;padding:26px;max-width:calc(100% - 30px);max-height:90vh;overflow:auto;width:540px;color:var(--ink);box-shadow:0 20px 90px #15334544}
+dialog::backdrop{background:#18334477}.confirmbox{padding:15px;border-radius:9px;background:#f5f8fa}
+#toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);max-width:92%;padding:13px 20px;background:#214d5d;color:white;border-radius:8px;z-index:30;font-size:13px}
+.pre{white-space:pre-line;overflow-wrap:anywhere}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
+[hidden]{display:none!important}#printArea{display:none}
+@media(max-width:800px){
+.layout{grid-template-columns:1fr}h1,.header-clinic{font-size:23px}
+main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px}
+.step b{width:20px;height:20px;margin-right:4px}}
+@media print{
+@page{size:A4;margin:20mm}body{background:white}
+.version,main,dialog,#toast{display:none!important}
+#printArea{display:block!important;text-align:center;padding:15mm;border:1px solid #ccc}
+#printArea .qr{width:80mm;margin:10mm auto}
+#printArea .qr img,#printArea .qr canvas{width:70mm!important;height:70mm!important}
+#printArea h1{font-size:24px}}
 </style>
 </head>
 <body>
-<main id="capture-screen" aria-labelledby="capture-heading">
-  <header><h1 id="capture-heading" tabindex="-1">SomnoLog</h1></header>
-  <section class="meters" aria-label="マイクと体動の入力メーター">
-    <div class="signal">
-      <div class="label">マイク</div>
-      <div class="wave">
-        <svg id="microphone-wave" viewBox="0 0 320 72" preserveAspectRatio="none" role="img" aria-label="マイク入力">
-          <path d="M0 18H320 M0 54H320" stroke="#202d3b" fill="none"/>
-          <path id="microphone-path" d="M0 36H320" stroke="#7190a6" stroke-width="2" fill="none"/>
-        </svg>
-      </div>
-      <button id="microphone-permission" class="permission" type="button" data-permission="microphone">マイクを許可</button>
-        <div style="margin-top:16px">
-          <label for="recording-gain" style="display:block;color:#d1d7de;font-size:14px">音量調整 <output id="recording-gain-value">0dB</output></label>
-          <input id="recording-gain" type="range" min="-9" max="9" step="1" value="0" style="width:100%;margin:12px 0;accent-color:#84b9cf">
-          <div style="display:flex;justify-content:space-between;font-size:12px;color:#aebbc9"><span>−9 小さく</span><span>0</span><span>＋9 大きく</span></div>
-          <p style="font-size:11px;color:#aebbc9;line-height:1.7;margin-bottom:0">再生音量とグラフを調整します。生音のdB値は変更しません。記録中は固定です。</p>
-        </div>
-    </div>
-    <div class="signal">
-      <div class="label">体動</div>
-      <div class="wave">
-        <svg id="motion-wave" viewBox="0 0 320 72" preserveAspectRatio="none" role="img" aria-label="体動入力">
-          <path d="M0 18H320 M0 54H320" stroke="#202d3b" fill="none"/>
-          <path id="motion-path" d="M0 36H320" stroke="#7190a6" stroke-width="2" fill="none"/>
-        </svg>
-      </div>
-      <button id="motion-permission" class="permission" type="button" data-permission="motion">モーションセンサーを許可</button>
-    </div>
-  </section>
-  <section class="controls" aria-label="記録操作">
-    <div class="row">
-      <button id="start" class="control start" type="button" disabled>記録開始</button>
-      <button id="stop-button" class="control stop" type="button" disabled>停止</button>
-    </div>
-    <button id="black-button" class="control black" type="button" disabled>黒画面に切り替え</button>
-    <button id="history-button" class="control history" type="button">履歴を見る</button>
-    <button id="capture-help-button" class="usage" type="button" aria-haspopup="dialog">使い方を見る</button>
-  </section>
-</main>
+<div class="version">② 診療所用患者QR発行 V7</div>
+<main>
+<div class="heading">
+<div class="headingline"><span class="header-clinic" id="headerClinic">診療所情報を読み込んでください</span><h1>QRの発行</h1></div>
+<p class="muted">患者情報を補完し、患者さん自身の端末で読むQRを発行してください。</p>
+<div class="actions"><button class="btn" id="readQR">QRコードを読み込む</button><button class="btn outline" id="openTools">実績・履歴・設定</button></div>
+</div>
+<div id="notice" class="notice">①の管理QRを読み込んでください。標準カメラで読み取ってこの画面を開いた場合は、自動で引き継ぎます。</div>
+<div class="steps">
+<div class="step active" id="step1"><b>1</b>患者情報を入力</div>
+<div class="step" id="step2"><b>2</b>内容を確認</div>
+<div class="step" id="step3"><b>3</b>患者が読み取り</div>
+</div>
 
-<main id="record-screen" class="app" aria-labelledby="result-heading" hidden>
-  <header>
-    <div class="row"><h1>SomnoLog</h1><span class="badge">記録終了</span></div>
-    <h2 id="result-heading" tabindex="-1">睡眠記録</h2>
-    <p id="result-range" class="record-range">記録なし</p>
-    <p id="result-year" class="note" style="margin-top:10px">実測記録を表示します</p>
-  </header>
-  <section class="panel" aria-label="記録の概要">
-    <div class="duration" style="margin-top:0">
-      <span class="label">記録時間</span>
-      <span id="result-duration" class="value">0<small>秒</small></span>
-    </div>
-    <p id="result-time-detail" class="note" style="margin-top:8px"></p>
-    <dl class="totals">
-      <dt>音の検出時間</dt><dd id="sound-duration" class="value">0<small>秒</small></dd>
-      <dt>体動の検出時間</dt><dd id="motion-duration" class="value">0<small>秒</small></dd>
-    </dl>
-  </section>
-  <section class="actions">
-    <button id="save-button" class="action primary">保存・共有</button>
-    <button id="calendar-button" class="action secondary">記録カレンダーを見る</button>
-  </section>
-  <section class="bottom">
-    <button id="record-back" class="action back">記録画面に戻る</button>
-    <button id="result-help-button" class="action usage" data-help>使い方を見る</button>
-  </section>
-</main>
-
-<main id="calendar-screen" class="app" aria-labelledby="calendar-heading" hidden>
-  <header>
-    <div class="row"><h1>SomnoLog</h1><span class="badge">保存記録</span></div>
-    <h2 id="calendar-heading" tabindex="-1">記録カレンダー</h2>
-    <p class="subtitle">日付を選ぶと、睡眠記録を確認できます。</p>
-  </header>
-  <section class="panel calendar" aria-label="日付と期間の選択">
-    <div class="switch" aria-label="表示方法">
-      <button id="single-mode" class="active" aria-pressed="true">1日</button>
-      <button id="range-mode" aria-pressed="false">期間を選択</button>
-    </div>
-    <p id="selection-hint" class="hint" aria-live="polite"></p>
-    <div class="month-nav">
-      <button id="prev-month" class="arrow" aria-label="前の月">‹</button>
-      <h3 id="month-title" class="month-title" aria-live="polite"></h3>
-      <button id="next-month" class="arrow" aria-label="次の月">›</button>
-    </div>
-    <div class="weekdays" aria-hidden="true">
-      <span class="sun">日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span class="sat">土</span>
-    </div>
-    <div id="days" class="days"></div>
-    <div class="legend"><span class="dot"></span>保存記録あり<span class="legend-today"></span>今日</div>
-    <div id="range-tools" class="range-tools" hidden>
-      <span id="range-label" class="range-label"></span>
-      <button id="reset-range" class="reset">選び直す</button>
-    </div>
-  </section>
-  <section aria-labelledby="selected-heading">
-    <h3 id="selected-heading" class="section-title"></h3>
-    <div id="record-list" aria-live="polite"></div>
-    <div id="calendar-share-panel" class="share-panel">
-      <p>選択した日のログを医師と共有します</p>
-      <button id="share-button" class="action primary">ログを医師と共有</button>
-    </div>
-    <p class="note">※波形は実測データです。空白は欠測です。記録開始は入眠時刻を示しません。</p>
-  </section>
-  <section class="bottom">
-    <button id="calendar-back" class="action back">記録画面に戻る</button>
-    <button id="calendar-help-button" class="action usage" data-help>使い方を見る</button>
-  </section>
-</main>
-
-<section id="black-screen" data-clock-state="off" tabindex="0" aria-label="単タップで時計、1.5秒長押しで復帰" hidden>
-  <div class="black-content">
-    <time id="black-clock">00:00</time>
-    <button id="black-back" type="button">1.5秒長押しで記録画面に戻る</button>
-  </div>
+<div class="layout">
+<div>
+<section class="panel">
+<div class="panelhead"><h2>患者情報の入力</h2></div>
+<form id="patientForm">
+<div class="field" style="margin-top:0">
+<label for="chart">カルテナンバー又は任意の番号<span class="required">必須</span></label>
+<input id="chart" placeholder="カルテナンバー又は任意の番号を入力" maxlength="64" required autocomplete="off">
+<small>数字以外も受け付けます。カードの手書き欄とは別に入力してください。</small>
+</div>
+<div class="field">
+<label for="patientName">患者名<span class="optional">任意</span></label>
+<input id="patientName" maxlength="80" autocomplete="off" placeholder="患者名を入力">
+<small>入力した情報はQRと発行実績に含まれます。</small>
+</div>
+<div class="field">
+<label>アプリの利用方式</label>
+<div class="segmented"><div class="mode"><strong>◉ 単発・10回枠</strong><span>回数の消費・有効状態の管理は③患者アプリで行います。</span></div></div>
+<div class="countrow"><label for="usageCount">使用回数</label><input id="usageCount" value="10" readonly><span>回</span></div>
+</div>
+<label class="checklabel"><input type="checkbox" id="checked" required><span>患者情報・利用方式を確認しました。<br><span class="muted">患者情報を含むQRと実績の取り扱いを確認してください。</span></span></label>
+<button class="btn wide" id="reviewButton" style="margin-top:20px" type="submit">入力内容を確認する →</button>
+<p class="muted" style="text-align:center">次の確認画面で、患者用QRを発行します。</p>
+</form>
 </section>
+<p class="footnote">備忘録カードへの手書きは、アプリへの情報登録にはなりません。</p>
+</div>
+<div>
+<section class="panel preview">
+<h2>患者さんへ提示するQR</h2>
+<div id="emptyPreview">
+<div class="qrplaceholder"><div style="font-size:32px">▦<div style="font-size:12px;margin-top:12px">患者情報の確認後に<br>ここへQRが表示されます</div></div></div>
+<p class="muted">まだ発行していません。</p>
+</div>
+<div id="resultPreview" hidden>
+<div class="success">患者用QRを発行・保存しました</div>
+<div id="resultName" class="patientname"></div>
+<p id="resultChart" class="muted"></p>
+<span class="usagebadge">単発・10回枠</span>
+<div id="patientQr" class="qr"></div>
+<p><strong>患者さん自身の端末で<br>読み取ってください</strong></p>
+<div class="actions"><button class="btn secondary" id="enlarge">大きく表示</button><button class="btn outline" id="print">印刷</button></div>
+<div class="actions"><button class="btn outline" id="saveQR">QR画像保存</button><a class="btn outline" id="openPatient" target="_blank" rel="noopener noreferrer">③を開く</a></div>
+<button class="btn wide" id="activationMail" style="margin-top:18px">開通通知メールを作成</button>
+<p class="muted" id="mailStatus"></p>
+<div class="state">③の起動成功・メール送信完了・回数消費は、②から自動確認できません。</div>
+</div>
+</section>
+<section class="panel">
+<h3>診療所でのご案内</h3>
+<div class="help"><span class="num">1</span><p>患者情報を入力し、内容を確認して患者用QRを発行します。</p></div>
+<div class="help"><span class="num">2</span><p>患者さん自身のスマートフォンで、表示されたQRを読み取ってもらいます。</p></div>
+<div class="help"><span class="num">3</span><p>患者端末の睡眠記録アプリで、診療所名・カルテ番号・患者名を確認します。</p></div>
+<div class="help"><span class="num">4</span><p>開通確認後、通知メールをメールアプリで送信します。発行元の受信・照合で確認します。</p></div>
+<p class="muted" style="margin-top:18px">患者端末からの開通通知・ログ共有通知には③側のメール機能が必要です。</p>
+</section>
+</div>
+</div>
+</main>
 
-<dialog id="usage-dialog" aria-labelledby="usage-title">
-  <h2 id="usage-title">使い方</h2>
-  <ol>
-    <li><strong>スマホを置く</strong><br>落ちたりずれたりしない安定した場所に置いてください。</li>
-    <li><strong>電源につなぐ</strong><br>枕や布団の下には入れず、ケーブルが体に絡まないようにしてください。</li>
-    <li><strong>権限と録音ゲイン</strong><br>マイクを許可し、音量調整を−9〜＋9dBで設定してください。小さい音は＋側、大きすぎる音は−側です。記録中は固定します。体動非対応でも音声記録できます。</li>
-    <li><strong>メーターを見る</strong><br>調整後の音の振れ幅を表示します。生音のdB値は調整前のまま保存します。ピーク警告時は音量調整を下げてください。</li>
-    <li><strong>記録する</strong><br>最初の10秒は静かにしてください。増幅前入力で較正・音検出し、補正後音声を保存します。ページを前面に保ってください。</li>
-    <li><strong>黒画面と更新</strong><br>単タップで時計を3秒表示、1.5秒長押しで復帰します。キーボードはEnterまたはSpaceを1.5秒押します。見出しをダブルクリックするとGitHub更新元を設定できます。</li>
-  </ol>
-  <form method="dialog"><button class="close">閉じる</button></form>
+<dialog id="readDialog">
+<h2>QRコードを読み込む</h2>
+<p class="muted">①が発行したQR画像を選ぶか、標準カメラで読み取った起動URLを貼り付けてください。</p>
+<button class="btn" id="selectImage">QR画像を選んで読み込む</button>
+<p class="muted" id="imageSupport"></p>
+<label>読み取ったURL<textarea id="incomingURL" rows="5" placeholder="https://…?clinic=…"></textarea></label>
+<div class="actions"><button class="btn" id="loadURL">URLを読み込む</button><button class="btn secondary" id="closeRead">閉じる</button></div>
 </dialog>
 
-<dialog id="preview-dialog" aria-labelledby="preview-title">
-  <h2 id="preview-title">録音について</h2>
-  <p>実音声を端末内に保存します。第三者の声が含まれる場合があります。</p>
-  <form method="dialog"><button class="close">閉じる</button></form>
+<dialog id="confirmDialog">
+<span class="badge">発行前の確認</span>
+<h2 style="margin-top:14px">この内容で発行しますか？</h2>
+<p class="muted">患者さんに渡す前に、入力内容をご確認ください。</p>
+<div class="confirmbox"><dl class="facts" id="confirmDetails"></dl></div>
+<p class="muted">この操作では開通確認・利用回数の消費・売上の追加は行いません。患者情報を含む実績を保存します。</p>
+<div class="actions"><button class="btn secondary" id="cancelConfirm">修正する</button><button class="btn" id="confirmIssue">患者用QRを発行</button></div>
 </dialog>
 
-<dialog id="save-dialog" class="flow-dialog" aria-labelledby="save-title">
-  <h2 id="save-title">保存・共有</h2>
-  <p id="save-range" class="record-range">記録なし</p>
-  <div class="actions" style="margin-top:18px">
-    <button id="save-calendar" class="action primary choice">記録をカレンダーに保存<small>記録は自動保存済みです</small></button>
-    <button id="share-current" class="action secondary choice">音声付きデータを共有<small>医師への送付・SomnoGraph用</small></button>
-  </div>
-  <p id="save-status" class="note" role="status"></p>
-  <div class="footer">
-    <form method="dialog"><button id="save-close" class="action back">閉じる</button></form>
-  </div>
+<dialog id="largeDialog" style="width:570px;text-align:center">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:12px"><span class="badge">患者さんの端末で読み取り</span><button class="btn outline" id="closeLarge" style="padding:7px 12px">閉じる</button></div>
+<h2 id="largeName" style="margin-top:25px"></h2><p id="largeChart" class="muted"></p>
+<div id="largeQr" class="qr" style="width:370px;max-width:100%"></div>
+<p>スマートフォンのカメラで読み取ります。</p>
 </dialog>
 
-<dialog id="share-dialog" class="flow-dialog" aria-labelledby="share-title">
-  <h2 id="share-title">ログを医師と共有</h2>
-  <p>選択した記録を1つのZIPにまとめます。</p>
-  <div class="zip-summary">
-    <strong id="zip-period"></strong>
-    <p id="zip-count" style="margin:0 0 10px"></p>
-    <div id="zip-name" class="filename"></div>
-  </div>
-  <p><strong>ZIPにまとめるデータ</strong></p>
-  <ul>
-    <li>日時・要求設定・端末報告値・適用ゲイン</li>
-    <li>生音dB・日時付きログ（log.json）、イベント時刻（events.json）、30秒統計、音検出区間</li>
-    <li>補正後音声チャンク</li>
-  </ul>
-  <p class="warning">音声チャンクは連続録音の断片です。独立再生できるとは限りません。オフセットは配送時刻の推定で、SomnoGraph同期再生は未検証です。</p>
-  <p class="note">音声がDBに残っている場合に添付します。自動送信はしません。</p>
-  <div class="actions">
-    <button id="zip-save" class="action primary choice">ZIPを作成して保存<small>共有先と保存完了を確認してください</small></button>
-    <button id="clinic-button" class="action secondary">診療所の窓口で行う</button>
-  </div>
-  <p id="share-status" class="note" role="status"></p>
-  <progress id="zip-progress" max="100" value="0" aria-label="ZIP作成の進捗" hidden></progress>
-  <div class="footer">
-    <form method="dialog"><button id="share-close" class="action back">戻る</button></form>
-  </div>
+<dialog id="toolsDialog" style="width:700px">
+<div class="panelhead"><h2>実績・履歴・設定</h2><button class="btn outline" id="closeTools">閉じる</button></div>
+<h3>①への実績出力</h3>
+<button class="btn" id="exportEvents">実績JSONを保存</button><p id="eventCount" class="muted"></p>
+<h3 style="margin-top:24px">発行履歴</h3><div id="history" class="tablewrap"></div>
+<h3 style="margin-top:24px">バックアップ</h3>
+<div class="actions"><button class="btn secondary" id="backup">保存</button><button class="btn outline" id="restore">復元</button></div>
+<p class="muted">患者情報を含みます。安全に保管してください。復元は現在の保存内容を置き換えます。</p>
+<h3 style="margin-top:24px">②のGitHub更新先</h3>
+<form id="githubForm">
+<label>所有者／リポジトリ<input id="gRepo" placeholder="owner/repository" required maxlength="160"></label>
+<label class="field">ブランチ<input id="gBranch" value="main" required maxlength="160"></label>
+<label class="field">②のHTMLパス<input id="gPath" placeholder="02-clinic.html" required maxlength="500"></label>
+<label class="checklabel"><input id="gAuto" type="checkbox"><span>起動時に最新版を確認（適用は確認後）</span></label>
+<button class="btn secondary" style="margin-top:15px">更新先を保存</button>
+</form>
+<div class="actions"><button class="btn secondary" id="checkUpdate">最新版を確認</button><button class="btn" id="applyUpdate" hidden>取得した最新版を適用</button></div>
+<p id="updateStatus" class="muted pre"></p>
 </dialog>
 
-<dialog id="message" class="flow-dialog" aria-labelledby="message-title">
-  <h2 id="message-title"></h2>
-  <p id="message-body"></p>
-  <form method="dialog"><button id="message-close" class="action back">閉じる</button></form>
-</dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<div id="printArea"><p>睡眠記録サービス／患者用QR</p><h1 id="printName"></h1><p id="printChart"></p><div id="printQr" class="qr"></div><p id="printSerial" class="pre"></p><p>患者さん自身の端末で読み取ってください。</p></div>
+<input id="imageFile" type="file" accept="image/*" hidden>
+<input id="backupFile" type="file" accept=".json,application/json" hidden>
 
 <script>
-(()=>{
-  'use strict';
-
-  const lifecycle=new AbortController();
-  const on=(target,type,fn)=>target.addEventListener(type,fn,{signal:lifecycle.signal});
-  const E=id=>document.getElementById(id);
-  const BUILD='v20261010-01';
-  const UK='SomnoLog.githubUpdate';
-  const pad=n=>String(n).padStart(2,'0');
-  const key=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-  const uid=()=>crypto.randomUUID
-    ?crypto.randomUUID()
-    :Date.now()+'-'+Math.random().toString(16).slice(2);
-
-  const ios=/iPad|iPhone|iPod/.test(navigator.userAgent)||
-    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-
-  
-let gainDb=0;
-try{
-  const stored=localStorage.getItem('SomnoLog.gainDb');
-  const old=localStorage.getItem('SomnoLog.gain');
-  const n=stored!==null?Number(stored):
-    old!==null&&Number(old)>0?20*Math.log10(Number(old)):0;
-  if(Number.isFinite(n))gainDb=Math.max(-9,Math.min(9,Math.round(n)));
-}catch(e){}
-let gainValue=Math.pow(10,gainDb/20);
-const signedDb=n=>(n>0?'+':'')+Number(n).toFixed(0)+'dB';
-const sessionGainDb=s=>Number.isFinite(s.audioProcessing?.appliedGainDb)
-  ?s.audioProcessing.appliedGainDb
-  :20*Math.log10(s.audioProcessing?.appliedGain||1);
-  
-
-  let db,ctx,stream,source,gainNode,destination,outMeter,processor,silent,recorder;
-  let active=false,busy=false,exporting=false,session=null,current=null,history=[];
-  let queue=Promise.resolve(),pending=0,saveFailed=false,timer,origin=0,endOffset=0,map=null;
-  let baseline=[],motionSamples=[],motionAllowed=false,lastMotion=0,lastEvent=0;
-  let gravity=null,motionVector=null;
-  let clip=null,bin=null,boundary=0,sequence=0,loaded=false;
-  let wake,clockTimer,holdTimer,held=false,blockClick=0;
-  let month=new Date(new Date().getFullYear(),new Date().getMonth(),1);
-  let mode='single',selected=key(new Date()),a=null,b=null;
-  let returnScreen='capture-screen',shareList=[],renderToken=0;
-  let releaseLock,raf=0,clockInterval,updating=false,meterFrame=0;
-
-  const warnings=new Set();
-  const labels=document.querySelectorAll('#capture-screen .signal .label');
-
-  
-function updateGain(){
-  E('recording-gain').value=gainDb;
-  E('recording-gain-value').textContent=signedDb(gainDb);
-}
-E('recording-gain').oninput=()=>{
-  if(active||busy||updating)return;
-  gainDb=Number(E('recording-gain').value);
-  gainValue=Math.pow(10,gainDb/20);
-  if(gainNode&&ctx)gainNode.gain.setValueAtTime(gainValue,ctx.currentTime);
-  try{localStorage.setItem('SomnoLog.gainDb',String(gainDb));}catch(e){}
-  warnings.delete('補正後ピーク危険。音量調整を下げてください。');
-  warnings.delete('補正後ピーク危険。停止して音量調整を下げてください。');
-  updateGain();
-  status();
+"use strict";
+const $=id=>document.getElementById(id),
+STORE="somnolog.clinic.production.v7",
+GKEY="somnolog.clinic.github",
+VERSION=7,
+GITHUB_DEFAULT={
+  repo:"matsuodentalassociation/sleep_App_management",
+  branch:"main",
+  path:"index.html",
+  auto:true
 };
-updateGain();
-
-function status(raw=null,peak=null){
-    labels[0].textContent=
-      (active
-        ?`マイク 音検出 ${session.soundDetectedMs.toFixed(0)}ms / ${
-          session.baselineDbFS===null
-            ?'較正中'
-            :'基準 '+session.baselineDbFS.toFixed(1)+'dBFS'
-        }`
-        :'マイク')+
-      ` / 音量調整 ${signedDb(gainDb)}・表示8倍`+
-      (raw===null?'':` / 生音 ${raw.toFixed(1)}dB`)+
-      (peak===null?'':` / 補正ピーク ${
-        (20*Math.log10(Math.max(peak,1e-6))).toFixed(1)
-      }dBFS`)+
-      (warnings.size?' / '+[...warnings].join(' / '):'');
-
-    labels[1].textContent=active
-      ?`体動 ${session.motionDetectedMs.toFixed(0)}ms${
-        performance.now()-lastMotion>300?' / 欠測':''
-      }`
-      :'体動';
-  }
-
-  function warn(s){
-    warnings.add(s);
-    status();
-  }
-
-  function error(e){
-    warn('エラー: '+(e?.message||e));
-  }
-
-  function controls(){
-    E('start').disabled=!db||!stream||active||busy||updating;
-    E('stop-button').disabled=!active||busy;
-    E('black-button').disabled=!active||busy;
-    E('history-button').disabled=active||busy||updating;
-    E('microphone-permission').disabled=active||busy||updating;
-    E('recording-gain').disabled=active||busy||updating;
-  }
-
-  function closeDialogs(){
-    document.querySelectorAll('dialog[open]').forEach(d=>d.close());
-  }
-
-  function screen(id){
-    closeDialogs();
-    leaveBlack(false);
-    ['capture-screen','record-screen','calendar-screen'].forEach(s=>{
-      E(s).hidden=s!==id;
-    });
-    window.scrollTo(0,0);
-    E(id==='capture-screen'
-      ?'capture-heading'
-      :id==='record-screen'
-        ?'result-heading'
-        :'calendar-heading').focus();
-  }
-
-  function message(title,text){
-    closeDialogs();
-    E('message-title').textContent=title;
-    E('message-body').textContent=text;
-    E('message').showModal();
-  }
-
-  function req(r){
-    return new Promise((ok,no)=>{
-      r.onsuccess=()=>ok(r.result);
-      r.onerror=()=>no(r.error);
-    });
-  }
-
-  function done(t){
-    return new Promise((ok,no)=>{
-      t.oncomplete=ok;
-      t.onabort=t.onerror=()=>no(t.error||Error('DB保存失敗'));
-    });
-  }
-
-  
-function getPath(value,path){
-  return path.split('.').reduce((v,k)=>v==null?undefined:v[k],value);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let state,storageOK=true,pending=null,result=null,timer,candidate=null,updateBusy=false,startError="";
+function toast(s){$("toast").textContent=s;$("toast").hidden=false;clearTimeout(timer);timer=setTimeout(()=>$("toast").hidden=true,6500)}
+function str(v,label,max,optional=false){if(typeof v!=="string"||v.length>max||(!optional&&!v.trim()))throw Error(label+"を確認してください。");return v.trim()}
+function web(v,optional=false){if(optional&&!v)return "";const u=new URL(str(v,"URL",2000));if(u.protocol!=="https:"||u.username||u.password||u.hostname.endsWith(".invalid"))throw Error("実際のHTTPS URLを使用してください。");return u.href}
+function mail(v){if(!v)return "";const s=str(v,"メール",254);if(!/^[^\s@<>?,;:]+@[^\s@<>?,;:]+\.[^\s@<>?,;:]+$/.test(s))throw Error("メールアドレスが不正です。");return s}
+function uid(){const a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,n=>n.toString(16).padStart(2,"0")).join("")}
+function encode(o){let s="";for(const b of new TextEncoder().encode(JSON.stringify(o)))s+=String.fromCharCode(b);return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"")}
+function decode(s){
+if(typeof s!=="string"||!s||s.length>16000||!/^[A-Za-z0-9_-]+$/.test(s)||s.length%4===1)throw Error("管理QRの形式が不正です。");
+try{const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-s.length%4)%4));return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(Uint8Array.from(b,c=>c.charCodeAt(0))))}catch{throw Error("管理QRを読み取れません。")}
 }
-function setPath(value,path,key){
-  const parts=path.split('.');
-  let target=value;
-  for(let i=0;i<parts.length-1;i++){
-    if(!target[parts[i]]||typeof target[parts[i]]!=='object')target[parts[i]]={};
-    target=target[parts[i]];
-  }
-  target[parts[parts.length-1]]=key;
+function validateConfig(o){
+if(!o||Array.isArray(o)||o.version!==1||(o.environment??o.env)!=="production")throw Error("①が発行した本番用管理QRを使用してください。");
+return{version:1,environment:"production",clinicName:str(o.clinicName,"診療所名",80),serial:str(o.serial,"シリアル",160),issuedOn:str(o.issuedOn,"発行日",40),patientAppUrl:web(o.patientAppUrl),logUrl:web(o.logShareUrl??o.logUrl,true),activationEmail:mail(o.activationEmail),logShareEmail:mail(o.logShareEmail)};
 }
-function storageWrite(store,value){
-  // Preserve existing keys; fill only keys missing in the installed DB schema.
-  const kp=store.keyPath;
-  if(kp===null){
-    const key=value.storageKey||(value.storageKey=
-      store.name==='sessions'?value.sessionId:uid());
-    return store.put(value,key);
-  }
-  const paths=Array.isArray(kp)?kp:[kp];
-  for(const path of paths){
-    if(!path)throw Error('保存先 '+store.name+' の主キー形式に対応できません');
-    if(getPath(value,path)===undefined&&!store.autoIncrement){
-      const generated=store.name==='sessions'?value.sessionId:uid();
-      if(generated===undefined)throw Error('保存先 '+store.name+' の主キーがありません');
-      setPath(value,path,generated);
-    }
-  }
-  try{return store.put(value);}
-  catch(e){throw Error('保存先 '+store.name+': '+e.message);}
+function fresh(){return{active:null,records:[],events:[]}}
+function normalize(o){if(!o||!Array.isArray(o.records)||!Array.isArray(o.events))throw Error("保存データが不正です。");if(o.active)o.active=validateConfig(o.active);return o}
+function load(){const s=localStorage.getItem(STORE);return s?normalize(JSON.parse(s)):fresh()}
+try{state=load();localStorage.setItem(STORE+".probe","1");localStorage.removeItem(STORE+".probe")}catch(e){state=fresh();storageOK=false;startError="保存領域エラー："+e.message+" 既存データは上書きしません。"}
+async function transact(fn){
+if(!storageOK)throw Error("保存領域を利用できません。");
+const run=()=>{const next=load(),value=fn(next);localStorage.setItem(STORE,JSON.stringify(next));state=next;return value};
+return navigator.locks?navigator.locks.request(STORE,run):run();
 }
-async function put(store,value){
-  const t=db.transaction(store,'readwrite');
-  const p=done(t);
-  try{
-    storageWrite(t.objectStore(store),value);
-  }catch(e){
-    try{t.abort();}catch(x){}
-    await p.catch(()=>{});
-    throw e;
-  }
-  await p;
+function save(name,content,type="application/json"){
+const u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
 }
-async function storageCheck(){
-  const names=['sessions','sessionLogs','profileBins','clips','audioChunks'];
-  const t=db.transaction(names,'readwrite');
-  const completed=done(t);
-  const sid='storage-check-'+uid();
-  try{
-    await Promise.all(names.map(name=>new Promise((ok,no)=>{
-      const store=t.objectStore(name);
-      const value=name==='sessions'
-        ?{sessionId:sid,status:'storage_check'}
-        :{sessionId:sid,clipId:uid(),blob:new Blob(['test']),offsetMs:0,index:0,sequence:0};
-      const r=storageWrite(store,value);
-      r.onerror=()=>no(Error('保存チェック '+name+': '+r.error?.message));
-      r.onsuccess=()=>{
-        const d=store.delete(r.result);
-        d.onerror=()=>no(d.error);
-        d.onsuccess=()=>ok();
-      };
-    })));
-    await completed;
-  }catch(e){
-    try{t.abort();}catch(x){}
-    await completed.catch(()=>{});
-    throw e;
-  }
+function setStep(n){[1,2,3].forEach(i=>$("step"+i).classList.toggle("active",i===n))}
+function drawQr(id,u,size){
+if(typeof QRCode==="undefined")throw Error("QRライブラリを読み込めません。ネットワークを確認してください。");
+const el=$(id);el.replaceChildren();new QRCode(el,{text:u,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});el.removeAttribute("title");
+const img=el.querySelector("img");if(img)img.alt="患者用QR";
 }
-  
-
-  function save(fn){
-    pending++;
-    queue=queue.then(fn).catch(e=>{
-      if(!saveFailed){
-        saveFailed=true;
-        error(e);
-        warn('保存失敗。保存済み部分のみ復旧可能です。');
-        setTimeout(()=>stop().catch(error),0);
-      }
-    }).finally(()=>pending--);
-
-    if(pending>200&&!saveFailed){
-      saveFailed=true;
-      warn('保存が追いつかないため安全停止します。');
-      setTimeout(()=>stop().catch(error),0);
-    }
-    return queue;
-  }
-
-  async function visit(store,sid,fn){
-    let after=null;
-    for(;;){
-      const item=await new Promise((ok,no)=>{
-        const r=db.transaction(store)
-          .objectStore(store)
-          .index('sessionId')
-          .openCursor(IDBKeyRange.only(sid));
-
-        r.onerror=()=>no(r.error);
-        r.onsuccess=()=>{
-          const c=r.result;
-          if(!c)return ok(null);
-
-          if(after!==null&&indexedDB.cmp(c.primaryKey,after)<=0){
-            if(indexedDB.cmp(c.primaryKey,after)<0&&c.continuePrimaryKey){
-              c.continuePrimaryKey(sid,after);
-              return;
-            }
-            c.continue();
-            return;
-          }
-
-          ok({key:c.primaryKey,value:c.value});
-        };
-      });
-
-      if(!item)return;
-      await fn(item.value);
-      after=item.key;
-    }
-  }
-
-  function resume(){
-    if(!ctx){
-      const C=window.AudioContext||window.webkitAudioContext;
-      if(!C)throw Error('AudioContext非対応');
-      try{
-        ctx=new C({sampleRate:22050});
-      }catch(e){
-        ctx=new C();
-      }
-    }
-    return ctx.resume();
-  }
-
-  E('microphone-permission').onclick=()=>{
-    
-  if(stream){
-    E('recording-gain').focus();
-    return;
-  }
-  
-
-  let p;
-    try{
-      p=resume();
-      p.catch(error);
-    }catch(e){
-      error(e);
-      return;
-    }
-
-    if(!navigator.mediaDevices?.getUserMedia){
-      warn('マイク非対応。HTTPS/localhostが必要です。');
-      return;
-    }
-
-    busy=true;
-    controls();
-
-    navigator.mediaDevices.getUserMedia({
-      audio:{
-        sampleRate:{ideal:22050},
-        channelCount:{ideal:1},
-        echoCancellation:{ideal:false},
-        noiseSuppression:{ideal:false},
-        autoGainControl:{ideal:false}
-      }
-    }).then(async s=>{
-      stream=s;
-      await p;
-
-      source=ctx.createMediaStreamSource(s);
-      gainNode=ctx.createGain();
-      gainNode.gain.value=gainValue;
-      source.connect(gainNode);
-
-      outMeter=ctx.createAnalyser();
-      outMeter.fftSize=2048;
-      gainNode.connect(outMeter);
-
-      destination=ctx.createMediaStreamDestination();
-      destination.channelCount=1;
-      destination.channelCountMode='explicit';
-      gainNode.connect(destination);
-
-      stream.getAudioTracks()[0].onended=()=>{
-        warn('マイク入力終了');
-        if(active){
-          stop().catch(error);
-        }else{
-          stream=null;
-          E('microphone-permission').textContent='マイクを再取得';
-          controls();
-        }
-      };
-
-      E('microphone-permission').textContent=
-        `マイク許可済み（音量は下のスライダー）`;
-      meter();
-    }).catch(e=>{
-      if(stream){
-        stream.getTracks().forEach(t=>t.stop());
-        stream=null;
-      }
-      error(e);
-      E('microphone-permission').textContent='マイク取得失敗（再試行）';
-    }).finally(()=>{
-      busy=false;
-      controls();
-    });
-  };
-
-  function meter(){
-    if(!stream||!outMeter)return;
-
-    const values=new Float32Array(outMeter.fftSize);
-    outMeter.getFloatTimeDomainData(values);
-
-    let d='',peak=0,sum=0;
-    for(const v of values){
-      peak=Math.max(peak,Math.abs(v));
-      sum+=v*v;
-    }
-
-    for(let i=0;i<160;i++){
-      const x=i*320/159;
-      let lo=0,hi=0;
-
-      for(
-        let j=Math.floor(i*values.length/160);
-        j<Math.floor((i+1)*values.length/160);
-        j++
-      ){
-        lo=Math.min(lo,values[j]);
-        hi=Math.max(hi,values[j]);
-      }
-
-      d+=`M${x.toFixed(1)} ${
-        (36-Math.min(1,hi*8)*32).toFixed(1)
-      }L${x.toFixed(1)} ${
-        (36-Math.max(-1,lo*8)*32).toFixed(1)
-      }`;
-    }
-
-    E('microphone-path').setAttribute('d',d);
-
-    const g=motionVector&&performance.now()-lastMotion<300
-      ?Math.hypot(...motionVector)/9.80665
-      :null;
-
-    E('motion-path').setAttribute(
-      'd',
-      g===null?'':`M0 36L160 ${36-Math.min(32,g*120)}L320 36`
-    );
-
-    if(!active&&++meterFrame%20===0){
-      if(peak>=.95){
-        warnings.add('補正後ピーク危険。音量調整を下げてください。');
-      }
-      status(
-        20*Math.log10(
-          Math.max(Math.sqrt(sum/values.length)/gainValue,1e-6)
-        ),
-        peak
-      );
-    }
-
-    raf=requestAnimationFrame(meter);
-  }
-
-  E('motion-permission').onclick=()=>{
-    let p;
-    try{
-      p=typeof DeviceMotionEvent==='undefined'
-        ?Promise.reject(Error('体動非対応'))
-        :DeviceMotionEvent.requestPermission
-          ?DeviceMotionEvent.requestPermission()
-          :Promise.resolve('granted');
-    }catch(e){
-      p=Promise.reject(e);
-    }
-
-    p.then(result=>{
-      if(result!=='granted')throw Error('体動権限拒否');
-      motionAllowed=true;
-      E('motion-permission').hidden=true;
-    }).catch(e=>{
-      warn(e.message+'。音声は継続できます。');
-    });
-  };
-
-  on(window,'devicemotion',e=>{
-    if(!motionAllowed)return;
-    const now=performance.now();
-    let v=null;
-    const x=e.acceleration;
-    const y=e.accelerationIncludingGravity;
-
-    if(x&&[x.x,x.y,x.z].every(Number.isFinite)){
-      v=[x.x,x.y,x.z];
-    }else if(y&&[y.x,y.y,y.z].every(Number.isFinite)){
-      const r=[y.x,y.y,y.z];
-
-      if(!gravity||now-lastEvent>1000){
-        gravity=r;
-        lastEvent=now;
-        return;
-      }
-
-      const alpha=Math.exp(-(now-lastEvent)/800);
-      gravity=gravity.map((g,i)=>alpha*g+(1-alpha)*r[i]);
-      v=r.map((n,i)=>n-gravity[i]);
-    }
-
-    lastEvent=now;
-    if(!v)return;
-    lastMotion=now;
-    motionVector=v;
-
-    if(active){
-      motionSamples.push({
-        t:now-origin,
-        q:v.reduce((s,n)=>s+n*n,0)/(9.80665**2)
-      });
-    }
-  });
-
-  const workletCode=`
-    class RMS100 extends AudioWorkletProcessor{
-      constructor(){
-        super();
-        this.n=0;
-        this.sum=0;
-        this.peak=0;
-        this.size=Math.round(sampleRate/10);
-      }
-
-      process(inputs){
-        const ch=inputs[0];
-        if(ch&&ch.length){
-          for(let i=0;i<ch[0].length;i++){
-            let x=0;
-            for(let c=0;c<ch.length;c++){
-              x+=ch[c][i]/ch.length;
-            }
-
-            this.sum+=x*x;
-            this.peak=Math.max(this.peak,Math.abs(x));
-
-            if(++this.n===this.size){
-              this.port.postMessage({
-                rms:Math.sqrt(this.sum/this.n),
-                peak:this.peak,
-                end:(currentFrame+i+1)/sampleRate*1000
-              });
-
-              this.n=0;
-              this.sum=0;
-              this.peak=0;
-            }
-          }
-        }
-        return true;
-      }
-    }
-    registerProcessor('somno-rms100',RMS100);
-  `;
-
-  function flushClip(){
-    if(clip){
-      const v=clip;
-      clip=null;
-      save(()=>put('clips',v));
-    }
-  }
-
-  function flushBin(){
-    if(bin){
-      const v=bin;
-      bin=null;
-      v.soundDbFS=v.soundCount?v.soundSum/v.soundCount:null;
-      v.motionG=v.motionCount?Math.sqrt(v.motionSum/v.motionCount):null;
-      save(()=>put('profileBins',v));
-    }
-  }
-
-  function log(row){
-    const s=session;
-    row.sessionId=s.sessionId;
-    row.timestamp=new Date(s.startTimeMs+row.offsetMs).toISOString();
-  row.sourceDbFS=row.soundDbFS;
-  row.adjustedDbFS=row.soundDbFS===null?null:row.soundDbFS+sessionGainDb(s);
-  row.appliedGainDb=sessionGainDb(s);
-  row.audioTimeMs=row.offsetMs;
-  row.eventTypes=[
-    ...(row.soundDetected===true?['sound']:[]),
-    ...(row.motionDetected===true?['motion']:[])
-  ];
-
-    if(row.soundDetected===true)s.soundDetectedMs+=row.durationMs;
-    if(row.motionDetected===true)s.motionDetectedMs+=row.durationMs;
-    if(row.status==='missing')s.missingMs+=row.durationMs;
-    if(row.soundStatus==='missing')s.soundMissingMs+=row.durationMs;
-    if(row.motionStatus==='missing')s.motionMissingMs+=row.durationMs;
-    s.lastOffsetMs=row.offsetMs+row.durationMs;
-
-    if(row.soundDetected===true){
-      if(!clip){
-        clip={
-          clipId:uid(),
-          sessionId:s.sessionId,
-          startOffsetMs:row.offsetMs,
-        startTime:row.timestamp,
-        sourceDbFSAtStart:row.soundDbFS,
-        sourcePeakDbFS:row.soundDbFS,
-        audioTimeMs:row.offsetMs
-      };
-      }
-      clip.endOffsetMs=row.offsetMs+row.durationMs;
-    clip.endTime=new Date(s.startTimeMs+clip.endOffsetMs).toISOString();
-    clip.sourcePeakDbFS=Math.max(clip.sourcePeakDbFS??-120,row.soundDbFS??-120);
-    }else{
-      flushClip();
-    }
-
-    const index=Math.floor(row.offsetMs/30000);
-    if(bin&&bin.index!==index)flushBin();
-
-    if(!bin){
-      bin={
-        sessionId:s.sessionId,
-        index,
-        startOffsetMs:index*30000,
-        durationMs:0,
-        soundCount:0,
-        soundSum:0,
-        motionCount:0,
-        motionSum:0,
-        soundDetectedMs:0,
-        motionDetectedMs:0,
-        missingMs:0
-      };
-    }
-
-    bin.durationMs+=row.durationMs;
-    if(row.soundDbFS!==null){
-      bin.soundCount++;
-      bin.soundSum+=row.soundDbFS;
-    }
-    if(row.motionG!==null){
-      bin.motionCount++;
-      bin.motionSum+=row.motionG**2;
-    }
-    if(row.soundDetected===true)bin.soundDetectedMs+=row.durationMs;
-    if(row.motionDetected===true)bin.motionDetectedMs+=row.durationMs;
-    if(row.status==='missing')bin.missingMs+=row.durationMs;
-
-    const snapshot=JSON.parse(JSON.stringify(s));
-    save(async()=>{
-      const t=db.transaction(['sessions','sessionLogs'],'readwrite');
-      const p=done(t);
-      try{
-      storageWrite(t.objectStore('sessionLogs'),row);
-      storageWrite(t.objectStore('sessions'),snapshot);
-    }catch(e){
-      try{t.abort();}catch(x){}
-      await p.catch(()=>{});
-      throw e;
-    }
-      await p;
-    });
-  }
-
-  function missing(until){
-    while(endOffset+.01<until){
-      const durationMs=Math.min(100,until-endOffset);
-      log({
-        offsetMs:endOffset,
-        durationMs,
-        soundDbFS:null,
-        motionG:null,
-        soundDetected:null,
-        motionDetected:null,
-        status:'missing',
-        soundStatus:'missing',
-        motionStatus:'missing'
-      });
-      endOffset+=durationMs;
-    }
-  }
-
-  function windowData(data){
-    if(!active||busy)return;
-
-    const arrival=performance.now()-origin;
-    if(map===null)map=arrival-data.end;
-    let end=data.end+map;
-
-    if(arrival-end>250){
-      missing(Math.max(endOffset,arrival-100));
-      map=arrival-data.end;
-      end=arrival;
-      warn('入力遅延・途絶は欠測として保存します。');
-    }
-
-    let start=end-100;
-    if(start<endOffset-1)return;
-    if(start-endOffset>1){
-      missing(start);
-    }else{
-      start=endOffset;
-    }
-
-    const track=stream.getAudioTracks()[0];
-    const valid=track.readyState==='live'&&!track.muted&&ctx.state==='running';
-    const raw=valid?20*Math.log10(Math.max(data.rms,1e-6)):null;
-    let soundDetected=null;
-    let soundStatus=raw===null?'missing':'ok';
-
-    if(raw!==null&&(start<10000||baseline.length<80)){
-      baseline.push(raw);
-      soundStatus='measuring_baseline';
-    }else if(raw!==null){
-      if(session.baselineDbFS===null){
-        const values=baseline.slice().sort((x,y)=>x-y);
-        const n=values.length;
-
-        if(n<80){
-          warn('環境音の基準を取得中です。計測は継続します。');
-          return;
-        }
-
-        const measured=n%2
-          ?values[n>>1]
-          :(values[n/2-1]+values[n/2])/2;
-
-        session.measuredBaselineDbFS=measured;
-        session.baselineDbFS=Math.max(-60,measured);
-        session.baselineFloorApplied=measured<-60;
-
-        if(measured<-60){
-          warn('環境音基準に−60dBFS下限を適用。低入力では音検出が厳しくなります。');
-        }
-      }
-      soundDetected=raw-session.baselineDbFS>=10;
-    }
-
-    const rows=motionSamples.filter(v=>v.t>=start&&v.t<start+100);
-    motionSamples=motionSamples.filter(v=>v.t>=start+100);
-    const motionG=rows.length
-      ?Math.sqrt(rows.reduce((s,v)=>s+v.q,0)/rows.length)
-      :null;
-
-    if(valid){
-      session.rawPeak=Math.max(session.rawPeak,data.peak);
-      session.postGainPeak=Math.max(
-        session.postGainPeak,
-        data.peak*gainValue
-      );
-
-      if(data.peak*gainValue>=.95){
-        session.clippingRiskWindows++;
-        warnings.add('補正後ピーク危険。停止して音量調整を下げてください。');
-      }
-    }
-
-    log({
-      offsetMs:start,
-      durationMs:100,
-      soundDbFS:raw,
-      motionG,
-      soundDetected,
-      motionDetected:motionG===null?null:motionG>=.05,
-      status:soundStatus==='measuring_baseline'
-        ?'measuring_baseline'
-        :raw===null||motionG===null
-          ?'missing'
-          :'ok',
-      soundStatus,
-      motionStatus:motionG===null?'missing':'ok',
-      rawPeak:valid?data.peak:null,
-      postGainPeakEstimate:valid?data.peak*gainValue:null
-    });
-
-    endOffset=start+100;
-    status(raw,valid?data.peak*gainValue:null);
-  }
-
-  async function acquireWake(){
-    if(!active||document.visibilityState!=='visible')return;
-    if(!navigator.wakeLock){
-      warn('Wake Lock非対応。OSによる消灯・中断に注意してください。');
-      return;
-    }
-
-    try{
-      if(!wake||wake.released){
-        wake=await navigator.wakeLock.request('screen');
-        wake.addEventListener('release',()=>{
-          wake=null;
-          if(active)warn('Wake Lock解除');
-        });
-      }
-    }catch(e){
-      warn('Wake Lock取得失敗: '+e.message);
-    }
-  }
-
-  on(document,'visibilitychange',()=>{
-    if(active){
-      warn('バックグラウンド継続は保証できません。');
-      if(document.visibilityState==='visible'){
-        ctx.resume().catch(error);
-        acquireWake();
-      }
-    }
-  });
-
-  E('start').onclick=()=>{
-    let p;
-    try{
-      p=resume();
-    }catch(e){
-      error(e);
-      return;
-    }
-
-    start(p).catch(async e=>{
-      error(e);
-      busy=false;
-      if(active)await stop().catch(error);
-      controls();
-    });
-  };
-
-  async function start(resumed){
-    if(active||busy||updating||!stream||!db)return;
-    busy=true;
-    controls();
-    await resumed;
-    await queue;
-    await storageCheck();
-
-    if(!window.MediaRecorder||!ctx.audioWorklet){
-      throw Error('MediaRecorder / AudioWorklet非対応');
-    }
-
-    if(!loaded){
-      const url=URL.createObjectURL(
-        new Blob([workletCode],{type:'text/javascript'})
-      );
-      try{
-        await ctx.audioWorklet.addModule(url);
-        loaded=true;
-      }finally{
-        URL.revokeObjectURL(url);
-      }
-    }
-
-    const types=[
-      'audio/mp4',
-      'audio/aac',
-      'audio/webm;codecs=opus',
-      'audio/webm'
-    ];
-
-    const mime=types.find(t=>MediaRecorder.isTypeSupported(t));
-    if(!mime)throw Error('対応する録音形式がありません');
-
-    recorder=new MediaRecorder(destination.stream,{
-      mimeType:mime,
-      audioBitsPerSecond:32000
-    });
-
-    const now=Date.now();
-    session={
-      sessionId:uid(),
-      patientId:localStorage.getItem('SomnoLog.patientId')||'UNREGISTERED',
-      date:key(new Date(now)),
-      startTimeMs:now,
-      startTime:new Date(now).toISOString(),
-      status:'recording',
-      baselineDbFS:null,
-      measuredBaselineDbFS:null,
-      baselineFloorApplied:null,
-      soundDetectedMs:0,
-      motionDetectedMs:0,
-      missingMs:0,
-      soundMissingMs:0,
-      motionMissingMs:0,
-      lastOffsetMs:0,
-      rawPeak:0,
-      postGainPeak:0,
-      clippingRiskWindows:0,
-      audioBytes:0,
-      requestedAudio:{
-        mimePriority:types,
-        sampleRate:22050,
-        channelCount:1,
-        audioBitsPerSecond:32000
-      },
-      actualAudio:{
-        mimeType:recorder.mimeType,
-        inputTrackSettings:stream.getAudioTracks()[0].getSettings(),
-        recordingTrackSettings:destination.stream.getAudioTracks()[0].getSettings(),
-        audioContextSampleRate:ctx.sampleRate,
-        recorderReportedBitsPerSecond:recorder.audioBitsPerSecond,
-        measuredBitsPerSecond:null,
-        measuredSampleRate:null,
-        measuredChannelCount:null
-      },
-      audioProcessing:{
-        appliedGain:gainValue,
-        appliedGainDb:gainDb,
-        gainTimeline:[{startOffsetMs:0,gain:gainValue,gainDb}],
-        logDomain:'pre_gain',
-        graphDomain:'post_gain_amplitude',
-        sourceLevelUnit:'dBFS',
-        sourceLevelLabel:'生音 dB',
-        recordedAudioDomain:'post_gain',
-        displayGain:8,
-        deviceHint:ios?'iOS/iPadOS candidate':'other',
-        automaticGainAdjustment:false,
-        postGainPeakAccuracy:'linear_gain_estimate_before_encoding'
-      },
-      build:BUILD
-    };
-
-    await put('sessions',session);
-
-    endOffset=0;
-    map=null;
-    baseline=[];
-    motionSamples=[];
-    clip=null;
-    bin=null;
-    sequence=0;
-    boundary=0;
-    saveFailed=false;
-
-    const target=session;
-    const rec=recorder;
-
-    rec.ondataavailable=e=>{
-      const end=performance.now()-origin;
-      const start=boundary;
-      boundary=end;
-
-      if(!e.data.size)return;
-      target.audioBytes+=e.data.size;
-
-      const item={
-        sessionId:target.sessionId,
-        sequence:sequence++,
-        blob:e.data,
-        mimeType:e.data.type||rec.mimeType,
-        startOffsetMs:start,
-      startTime:new Date(target.startTimeMs+start).toISOString(),
-      endTime:new Date(target.startTimeMs+end).toISOString(),
-      durationMs:Math.max(0,end-start),
-        offsetAccuracy:'delivery_time_estimate',
-        independentlyDecodable:false
-      };
-      save(()=>put('audioChunks',item));
-    };
-
-    rec.onerror=e=>{
-      error(e.error||Error('録音失敗'));
-      stop().catch(error);
-    };
-
-    processor=new AudioWorkletNode(ctx,'somno-rms100');
-    silent=ctx.createGain();
-    silent.gain.value=0;
-    processor.connect(silent).connect(ctx.destination);
-    processor.port.onmessage=e=>windowData(e.data);
-
-    origin=performance.now();
-  map=-ctx.currentTime*1000;
-  session.startTimeMs=Date.now();
-  session.startTime=new Date(session.startTimeMs).toISOString();
-  session.date=key(new Date(session.startTimeMs));
-  source.connect(processor);
-    active=true;
-    rec.start();
-  save(()=>put('sessions',JSON.parse(JSON.stringify(target))));
-  busy=false;
-    controls();
-    acquireWake();
-
-    if(!motionAllowed){
-      warn('体動未許可。音声のみ記録します。');
-    }
-
-    timer=setInterval(()=>{
-      if(!active||busy)return;
-      if(rec.state==='recording'){
-        try{
-          rec.requestData();
-        }catch(e){
-          error(e);
-          stop().catch(error);
-        }
-      }
-
-      if(performance.now()-origin-endOffset>1000){
-        warn('入力途絶を検出');
-        missing(performance.now()-origin-100);
-      }
-    },10000);
-  }
-
-  async function stop(){
-    if(!active||busy)return;
-    busy=true;
-    controls();
-    clearInterval(timer);
-
-    const elapsed=performance.now()-origin;
-    missing(Math.max(endOffset,elapsed));
-
-    try{
-      source.disconnect(processor);
-      processor.disconnect();
-      silent.disconnect();
-    }catch(e){
-      error(e);
-    }
-
-    flushClip();
-    flushBin();
-
-    await new Promise(resolve=>{
-      if(recorder.state==='inactive')return resolve();
-      recorder.addEventListener('stop',resolve,{once:true});
-      try{
-        recorder.stop();
-      }catch(e){
-        error(e);
-        resolve();
-      }
-    });
-
-    active=false;
-    await queue;
-
-    session.stopTimeMs=session.startTimeMs+elapsed;
-    session.stopTime=new Date(session.stopTimeMs).toISOString();
-    session.durationMs=elapsed;
-    session.status=saveFailed?'save_failed':'completed';
-    session.warnings=[...warnings];
-    session.actualAudio.measuredBitsPerSecond=elapsed
-      ?session.audioBytes*8000/elapsed
-      :null;
-
-    try{
-      await put('sessions',session);
-    }catch(e){
-      session.status='save_failed';
-      error(e);
-    }
-
-    current=session;
-    session=null;
-    busy=false;
-
-    if(wake)await wake.release().catch(error);
-    controls();
-    await loadHistory();
-    summary(current);
-    screen('record-screen');
-  }
-
-  E('stop-button').onclick=()=>stop().catch(error);
-
-  function clock(){
-    const d=new Date();
-    E('black-clock').textContent=`${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    E('black-clock').dateTime=E('black-clock').textContent;
-  }
-
-  function leaveBlack(focus=true){
-    clearTimeout(clockTimer);
-    clearTimeout(holdTimer);
-    held=false;
-    E('black-screen').hidden=true;
-    document.body.style.overflow='';
-    if(focus&&active)E('black-button').focus();
-  }
-
-  function revealClock(){
-    clock();
-    E('black-screen').dataset.clockState='bright';
-    clearTimeout(clockTimer);
-    clockTimer=setTimeout(()=>{
-      E('black-screen').dataset.clockState='off';
-      E('black-screen').focus();
-    },3000);
-  }
-
-  function beginHold(){
-    if(held)return;
-    held=true;
-    holdTimer=setTimeout(()=>{
-      if(held){
-        blockClick=performance.now()+1000;
-        leaveBlack();
-      }
-    },1500);
-  }
-
-  function endHold(){
-    clearTimeout(holdTimer);
-    if(held){
-      held=false;
-      if(performance.now()>blockClick)revealClock();
-    }
-  }
-
-  E('black-button').onclick=()=>{
-    if(!active)return;
-    closeDialogs();
-    E('black-screen').hidden=false;
-    E('black-screen').dataset.clockState='off';
-    document.body.style.overflow='hidden';
-    E('black-screen').focus();
-    acquireWake();
-  };
-
-  E('black-screen').addEventListener('pointerdown',e=>{
-    if(!e.isPrimary)return;
-    e.preventDefault();
-    E('black-screen').setPointerCapture(e.pointerId);
-    beginHold();
-  });
-
-  E('black-screen').addEventListener('pointerup',e=>{
-    e.preventDefault();
-    endHold();
-  });
-
-  E('black-screen').addEventListener('pointercancel',()=>{
-    clearTimeout(holdTimer);
-    held=false;
-  });
-
-  E('black-screen').addEventListener('click',e=>{
-    e.preventDefault();
-    e.stopPropagation();
-  },true);
-
-  E('black-screen').addEventListener('contextmenu',e=>e.preventDefault());
-
-  E('black-screen').addEventListener('keydown',e=>{
-    if(['Escape','Enter',' '].includes(e.key))e.preventDefault();
-    if(['Enter',' '].includes(e.key)&&!e.repeat)beginHold();
-  });
-
-  E('black-screen').addEventListener('keyup',e=>{
-    if(['Enter',' '].includes(e.key)){
-      e.preventDefault();
-      endHold();
-    }
-  });
-
-  clockInterval=setInterval(()=>{
-    if(!E('black-screen').hidden)clock();
-  },1000);
-
-  const when=n=>new Date(n).toLocaleString('ja-JP');
-  const duration=n=>
-    `${Math.floor(n/3600000)}<small>時間</small>`+
-    `${Math.floor(n/60000)%60}<small>分</small>`+
-    `${((n%60000)/1000).toFixed(3)}<small>秒</small>`;
-
-  function summary(s){
-    if(!s)return;
-
-    E('result-range').textContent=
-      `${when(s.startTimeMs)} → ${
-        when(s.stopTimeMs||s.startTimeMs+s.lastOffsetMs)
-      }`;
-
-    E('save-range').textContent=E('result-range').textContent;
-    E('result-time-detail').textContent=
-      `音量調整 ${signedDb(sessionGainDb(s))} / `+
-      `音量ログは増幅前 / ピーク危険窓 ${s.clippingRiskWindows||0}`;
-
-    E('result-year').textContent=
-      `${s.status} / 音声欠測 ${s.soundMissingMs||0}ms / `+
-      `体動欠測 ${s.motionMissingMs||0}ms / `+
-      `測定基準 ${s.measuredBaselineDbFS??'未取得'}dBFS / `+
-      `適用基準 ${s.baselineDbFS??'未取得'}dBFS`+
-      (s.warnings?.length?' / '+s.warnings.join(' / '):'');
-
-    E('result-duration').innerHTML=duration(s.durationMs||s.lastOffsetMs);
-    E('sound-duration').innerHTML=duration(s.soundDetectedMs||0);
-    E('motion-duration').innerHTML=duration(s.motionDetectedMs||0);
-
-    E('save-status').textContent=s.status==='save_failed'
-      ?'保存失敗。保存済み部分を確認してください。'
-      :'IndexedDBへ自動保存済みです。';
-  }
-
-  async function loadHistory(){
-    history=(await req(
-      db.transaction('sessions').objectStore('sessions').getAll()
-    )).sort((x,y)=>x.startTimeMs-y.startTimeMs);
-  }
-
-  function bounds(){
-    return mode==='single'?[selected,selected]:[a,b];
-  }
-
-  function matches(){
-    const [x,y]=bounds();
-    return x&&y?history.filter(s=>s.date>=x&&s.date<=y):[];
-  }
-
-  function calendar(){
-    const y=month.getFullYear();
-    const m=month.getMonth();
-    E('month-title').textContent=`${y}年${m+1}月`;
-
-    ['single','range'].forEach(v=>{
-      E(v+'-mode').classList.toggle('active',mode===v);
-      E(v+'-mode').setAttribute('aria-pressed',String(mode===v));
-    });
-
-    E('selection-hint').textContent=mode==='single'
-      ?'日付を選んでください。'
-      :!a
-        ?'開始日を選んでください。'
-        :!b
-          ?'終了日を選んでください。'
-          :'期間選択済み';
-
-    E('range-tools').hidden=mode!=='range';
-    E('range-label').textContent=a?(b?a+'〜'+b:a):'期間未選択';
-    E('days').replaceChildren();
-
-    for(let i=0;i<new Date(y,m,1).getDay();i++){
-      E('days').append(document.createElement('span'));
-    }
-
-    for(let d=1;d<=new Date(y,m+1,0).getDate();d++){
-      const date=key(new Date(y,m,d));
-      const w=new Date(y,m,d).getDay();
-      const has=history.some(s=>s.date===date);
-      const edge=mode==='single'?date===selected:date===a||date===b;
-      const inside=mode==='range'&&a&&b&&date>=a&&date<=b;
-      const button=document.createElement('button');
-
-      button.type='button';
-      button.className='day'+
-        (w===0?' sun':w===6?' sat':'')+
-        (date===key(new Date())?' today':'')+
-        (inside?' in-range':'')+
-        (edge?' selected':'');
-
-      button.setAttribute(
-        'aria-label',
-        date+(has?' 保存記録あり':' 保存記録なし')
-      );
-      button.setAttribute('aria-pressed',String(!!(edge||inside)));
-      button.innerHTML=
-        `<span>${d}</span>`+
-        `<span class="dot${has?'':' empty'}" aria-hidden="true"></span>`;
-
-      button.onclick=()=>{
-        if(mode==='single'){
-          selected=date;
-        }else if(!a||b){
-          a=date;
-          b=null;
-        }else{
-          b=date;
-          if(b<a)[a,b]=[b,a];
-        }
-        render();
-      };
-      E('days').append(button);
-    }
-  }
-
-  async function cards(){
-    const token=++renderToken;
-    const list=matches();
-    E('record-list').replaceChildren();
-    E('share-button').disabled=!list.length;
-    const [x,y]=bounds();
-
-    E('selected-heading').textContent=x&&y
-      ?`${x}${x===y?'':'〜'+y}の記録（${list.length}件）`
-      :'期間を選択してください';
-
-    if(!list.length){
-      const p=document.createElement('div');
-      p.className='empty-state';
-      p.textContent='表示できる保存記録はありません。';
-      E('record-list').append(p);
-      return;
-    }
-
-    for(const s of list){
-      if(token!==renderToken)return;
-
-      const card=document.createElement('article');
-      card.className='card';
-      card.dataset.recordId=s.sessionId;
-
-      const saved=document.createElement('span');
-      saved.className='saved';
-      saved.textContent=
-        `${s.status} / 音量調整 ${signedDb(sessionGainDb(s))}`;
-
-      const p=document.createElement('p');
-      p.className='card-time';
-      p.textContent=
-        `${when(s.startTimeMs)} → ${
-          when(s.stopTimeMs||s.startTimeMs+s.lastOffsetMs)
-        }`;
-
-      const value=document.createElement('div');
-      value.className='duration';
-      value.innerHTML=
-        `<span class="label">記録時間</span>`+
-        `<span class="value">${duration(s.durationMs||s.lastOffsetMs)}</span>`;
-
-      const totals=document.createElement('p');
-      totals.className='note';
-      totals.textContent=
-        `音 ${s.soundDetectedMs||0}ms / `+
-        `体動 ${s.motionDetectedMs||0}ms / 欠測 ${s.missingMs||0}ms`;
-
-      const fig=document.createElement('figure');
-      fig.className='timeline';
-      fig.innerHTML=
-        '<div class="timeline-header">'+
-        '<figcaption class="timeline-title">記録タイムライン</figcaption>'+
-        '<span class="sample">振れ幅は音量調整後</span></div>'+
-        '<div class="chart" data-role="timeline-chart"></div>'+
-        '<div class="endpoints">'+
-        '<div>記録開始<strong></strong></div>'+
-        '<div>記録停止<strong></strong></div></div>';
-
-      fig.querySelectorAll('strong')[0].textContent=when(s.startTimeMs);
-      fig.querySelectorAll('strong')[1].textContent=
-        when(s.stopTimeMs||s.startTimeMs+s.lastOffsetMs);
-
-      card.append(saved,p,value,totals,fig);
-      E('record-list').append(card);
-      card.onclick=()=>{
-        current=s;
-        summary(s);
-        screen('record-screen');
-      };
-
-      const total=s.durationMs||s.lastOffsetMs||1;
-      const points=Array.from({length:336},()=>({s:null,m:null}));
-
-      await visit('sessionLogs',s.sessionId,r=>{
-        const i=Math.min(335,Math.floor(r.offsetMs/total*336));
-        if(r.soundDbFS!==null){
-          points[i].s=Math.max(points[i].s??-120,r.soundDbFS);
-        }
-        if(r.motionG!==null){
-          points[i].m=Math.max(points[i].m??0,r.motionG);
-        }
-      });
-
-      if(token!==renderToken)return;
-
-      const path=(field,scale)=>{
-        let d='',open=false;
-        points.forEach((p,i)=>{
-          if(p[field]===null){
-            open=false;
-            return;
-          }
-          d+=(open?'L':'M')+(i+12)+' '+scale(p[field]).toFixed(2);
-          open=true;
-        });
-        return d;
-      };
-
-      fig.querySelector('.chart').innerHTML=
-        `<svg viewBox="0 0 360 236" role="img" aria-label="音量調整後の音の振れ幅と体動。生音の値はログに保持。空白は欠測">
-          <text x="12" y="19" fill="#84b9cf" font-size="12">音の振れ幅（調整 ${signedDb(sessionGainDb(s))}）</text>
-          <text x="12" y="132" fill="#bfdbd1" font-size="12">体動 g（0〜0.5）</text>
-          <path d="${path('s',v=>105-Math.min(72,Math.pow(10,(v+sessionGainDb(s))/20)*8*72))}" fill="none" stroke="#84b9cf"/>
-          <path d="${path('m',v=>200-Math.min(.5,v)*120)}" fill="none" stroke="#bfdbd1"/>
-          <text x="12" y="227" fill="#aebbc9" font-size="11">0分</text>
-          <text x="348" y="227" text-anchor="end" fill="#aebbc9" font-size="11">${(total/60000).toFixed(2)}分</text>
-        </svg>`;
-    }
-  }
-
-  function render(){
-    calendar();
-    cards().catch(error);
-  }
-
-  async function openCalendar(from){
-    returnScreen=from;
-    await loadHistory();
-    E('calendar-back').textContent=from==='record-screen'
-      ?'記録終了画面に戻る'
-      :'記録画面に戻る';
-    render();
-    screen('calendar-screen');
-  }
-
-  E('history-button').onclick=()=>openCalendar('capture-screen').catch(error);
-  E('calendar-button').onclick=()=>openCalendar('record-screen').catch(error);
-  E('calendar-back').onclick=()=>screen(returnScreen);
-  E('record-back').onclick=()=>screen('capture-screen');
-
-  E('single-mode').onclick=()=>{
-    mode='single';
-    render();
-  };
-  E('range-mode').onclick=()=>{
-    mode='range';
-    render();
-  };
-  E('reset-range').onclick=()=>{
-    a=b=null;
-    render();
-  };
-  E('prev-month').onclick=()=>{
-    month=new Date(month.getFullYear(),month.getMonth()-1,1);
-    calendar();
-  };
-  E('next-month').onclick=()=>{
-    month=new Date(month.getFullYear(),month.getMonth()+1,1);
-    calendar();
-  };
-
-  E('save-button').onclick=()=>{
-    if(current)E('save-dialog').showModal();
-  };
-
-  E('save-calendar').onclick
-    =()=>{
-      if(!current)return;
-      selected=current.date;
-      mode='single';
-      month=new Date(current.startTimeMs);
-      month.setDate(1);
-      openCalendar('record-screen').catch(error);
-    };
-
-    function openShare(list){
-      if(!list.length)return;
-      shareList=list.slice();
-      closeDialogs();
-
-      E('zip-period').textContent=
-        list[0].date+'〜'+list[list.length-1].date;
-      E('zip-count').textContent=`対象 ${list.length}件`;
-      E('zip-name').textContent=
-        `SomnoLog_${list[0].date}${
-          list.length>1?'_'+list[list.length-1].date:''
-        }.zip`;
-      E('share-status').textContent=
-        '補正後音声を含む機微なデータです。共有先を確認してください。';
-      E('share-dialog').showModal();
-    }
-
-    E('share-current').onclick=()=>{
-      if(current)openShare([current]);
-    };
-
-    E('share-button').onclick=()=>openShare(matches());
-
-    E('clinic-button').onclick=()=>{
-      E('share-status').textContent=
-        'ZIP保存後、診療所が指定する安全な方法で渡してください。自動送信はしません。';
-    };
-
-    const enc=new TextEncoder();
-
-    const crcTable=(()=>{
-      const t=new Uint32Array(256);
-      for(let i=0;i<256;i++){
-        let c=i;
-        for(let j=0;j<8;j++){
-          c=(c&1)?0xedb88320^(c>>>1):c>>>1;
-        }
-        t[i]=c>>>0;
-      }
-      return t;
-    })();
-
-    class Zip{
-      constructor(sink){
-        this.sink=sink;
-        this.offset=0;
-        this.entries=[];
-      }
-
-      async write(v){
-        if(this.offset+v.length>0xffffffff){
-          throw Error('ZIP32の4GiB上限です。期間を分割してください。');
-        }
-        await this.sink.write(v);
-        this.offset+=v.length;
-      }
-
-      async entry(name,producer){
-        if(this.entries.length>=65535){
-          throw Error('ZIPのファイル数上限');
-        }
-
-        const n=enc.encode(name);
-        const h=new Uint8Array(30);
-        const v=new DataView(h.buffer);
-        const offset=this.offset;
-
-        v.setUint32(0,0x04034b50,true);
-        v.setUint16(4,20,true);
-        v.setUint16(6,0x0808,true);
-        v.setUint16(12,33,true);
-        v.setUint16(26,n.length,true);
-
-        await this.write(h);
-        await this.write(n);
-
-        let crc=0xffffffff;
-        let size=0;
-
-        const emit=async data=>{
-          if(typeof data==='string'){
-            data=enc.encode(data);
-          }
-
-          for(const x of data){
-            crc=crcTable[(crc^x)&255]^(crc>>>8);
-          }
-
-          size+=data.length;
-          if(size>0xffffffff){
-            throw Error('ZIP内ファイルが4GiBを超えました');
-          }
-          await this.write(data);
-        };
-
-        if(producer)await producer(emit);
-
-        crc=(crc^0xffffffff)>>>0;
-        const dd=new Uint8Array(16);
-        const d=new DataView(dd.buffer);
-
-        d.setUint32(0,0x08074b50,true);
-        d.setUint32(4,crc,true);
-        d.setUint32(8,size,true);
-        d.setUint32(12,size,true);
-
-        await this.write(dd);
-        this.entries.push({
-          n,offset,crc,size,
-          dir:name.endsWith('/')
-        });
-      }
-
-      async text(name,text){
-        await this.entry(name,emit=>emit(text));
-      }
-
-      async blob(name,blob){
-        await this.entry(name,async emit=>{
-          for(let i=0;i<blob.size;i+=1048576){
-            const buffer=await blob.slice(i,i+1048576).arrayBuffer();
-            await emit(new Uint8Array(buffer));
-          }
-        });
-      }
-
-      async finish(){
-        const offset=this.offset;
-
-        for(const e of this.entries){
-          const h=new Uint8Array(46);
-          const v=new DataView(h.buffer);
-
-          v.setUint32(0,0x02014b50,true);
-          v.setUint16(4,20,true);
-          v.setUint16(6,20,true);
-          v.setUint16(8,0x0808,true);
-          v.setUint16(14,33,true);
-          v.setUint32(16,e.crc,true);
-          v.setUint32(20,e.size,true);
-          v.setUint32(24,e.size,true);
-          v.setUint16(28,e.n.length,true);
-          v.setUint32(38,e.dir?16:0,true);
-          v.setUint32(42,e.offset,true);
-
-          await this.write(h);
-          await this.write(e.n);
-        }
-
-        const size=this.offset-offset;
-        const h=new Uint8Array(22);
-        const v=new DataView(h.buffer);
-
-        v.setUint32(0,0x06054b50,true);
-        v.setUint16(8,this.entries.length,true);
-        v.setUint16(10,this.entries.length,true);
-        v.setUint32(12,size,true);
-        v.setUint32(16,offset,true);
-
-        await this.write(h);
-        await this.sink.close();
-      }
-    }
-
-    const extension=m=>
-      m?.includes('mp4')
-        ?'mp4'
-        :m?.includes('aac')
-          ?'aac'
-          :'webm';
-
-    async function storeJSON(zip,path,store,s){
-      await zip.entry(path,async emit=>{
-        await emit('[');
-        let first=true;
-
-        await visit(store,s.sessionId,async row=>{
-          if(!first)await emit(',');
-          await emit(JSON.stringify(row));
-          first=false;
-        });
-
-        await emit(']');
-      });
-    }
-
-    async function exportSession(zip,s,prefix,mname){
-      const files=[];
-
-      await visit('audioChunks',s.sessionId,row=>{
-        files.push({
-          sequence:row.sequence,
-          fileName:
-            `audio/chunk_${String(row.sequence).padStart(6,'0')}.${extension(row.mimeType)}`,
-          mimeType:row.mimeType,
-          sizeBytes:row.blob.size,
-          startOffsetMs:row.startOffsetMs,
-          durationMs:row.durationMs,
-        startTime:row.startTime||new Date(s.startTimeMs+row.startOffsetMs).toISOString(),
-        endTime:row.endTime||new Date(s.startTimeMs+row.startOffsetMs+row.durationMs).toISOString(),
-        appliedGainDb:sessionGainDb(s),
-        offsetAccuracy:'delivery_time_estimate',
-          independentlyDecodable:false
-        });
-      });
-
-      files.sort((x,y)=>x.sequence-y.sequence);
-
-      const manifest={
-        ...s,
-        format:'zip-store-v1',
-        schemaVersion:'zip-store-v1',
-        exportType:'single_session',
-        patientId:s.patientId||'UNREGISTERED',
-        audioFiles:files,
-        calibration:{
-          durationMs:10000,
-          windowMs:100,
-          method:'median_dbfs',
-          floorDbFS:-60
-        },
-        detection:{
-          soundRelativeThresholdDb:10,
-          motionThresholdG:.05,
-          windowMs:100
-        },
-        audioPlayback:{
-          chunkEncoding:'continuous_mediarecorder_stream_fragments',
-          concatenationOrder:'sequence ascending',
-          offsetAccuracy:'delivery_time_estimate',
-          independentlyDecodable:false,
-          somnoGraphCompatibility:'unverified'
-        },
-        logFile:'log.json',
-      eventFile:'events.json',
-      timeLink:{
-        origin:s.startTime,
-        audioPositionField:'audioTimeMs',
-        logOffsetField:'offsetMs',
-        timestampField:'timestamp',
-        sourceLevelField:'sourceDbFS',
-        adjustedLevelField:'adjustedDbFS',
-        unit:'milliseconds',
-        accuracy:'approximate_100ms_windows_and_delivery_time'
-      },
-        exportedAt:new Date().toISOString()
-      };
-
-      if(prefix)await zip.entry(prefix);
-
-      await zip.text(
-        prefix+mname,
-        JSON.stringify(manifest,null,2)
-      );
-
-      await zip.text(
-        prefix+'README.txt',
-        `SomnoLog zip-store-v1\r\n`+
-        `患者ID: ${manifest.patientId}\r\n`+
-        `開始: ${s.startTime}\r\n`+
-        `状態: ${s.status}\r\n`+
-        `音検出: ${s.soundDetectedMs}ms / 体動: ${s.motionDetectedMs}ms\r\n`+
-        `音量調整: ${signedDb(sessionGainDb(s))}\r\n`+
-        `音声とグラフの振れ幅は調整後、sourceDbFS/soundDbFSは生音の入力値です。\r\n`+
-        `events.jsonにイベント開始日時とaudioTimeMs（録音開始からのms）を保存します。\r\n`+
-        `音声断片は独立再生できるとは限りません。sequence順に連結する必要があります。\r\n`+
-        `オフセットは配送時刻の推定です。SomnoGraph互換性は未検証です。\r\n`+
-        `サンプルレート・チャンネル数のコンテナ実測は未実装です。\r\n`+
-        `記録開始は入眠時刻ではありません。診断用の音圧SPL測定ではありません。\r\n`+
-        `${(s.warnings||[]).join('\r\n')}`
-      );
-
-      await storeJSON(zip,prefix+'log.json','sessionLogs',s);
-      await storeJSON(zip,prefix+'profileBins.json','profileBins',s);
-      await storeJSON(zip,prefix+'clips.json','clips',s);
-    await zip.entry(prefix+'events.json',async emit=>{
-      await emit('[');
-      let first=true;
-      const previous={sound:false,motion:false};
-      await visit('sessionLogs',s.sessionId,async row=>{
-        for(const type of ['sound','motion']){
-          const detected=row[type+'Detected'];
-          if(detected===true&&!previous[type]){
-            const event={
-              sessionId:s.sessionId,
-              type,
-              timestamp:row.timestamp||new Date(s.startTimeMs+row.offsetMs).toISOString(),
-              audioTimeMs:row.offsetMs,
-              offsetMs:row.offsetMs,
-              durationMs:row.durationMs,
-              sourceDbFS:row.sourceDbFS??row.soundDbFS??null,
-              adjustedDbFS:row.adjustedDbFS??
-                (row.soundDbFS==null?null:row.soundDbFS+sessionGainDb(s)),
-              motionG:row.motionG??null,
-              appliedGainDb:sessionGainDb(s)
-            };
-            if(!first)await emit(',');
-            await emit(JSON.stringify(event));
-            first=false;
-          }
-          previous[type]=detected===true;
-        }
-      });
-      await emit(']');
-    });
-      await zip.entry(prefix+'audio/');
-
-      await visit('audioChunks',s.sessionId,row=>
-        zip.blob(
-          prefix+
-            `audio/chunk_${String(row.sequence).padStart(6,'0')}.${extension(row.mimeType)}`,
-          row.blob
-        )
-      );
-    }
-
-    E('share-dialog').addEventListener('cancel',e=>{
-      if(exporting)e.preventDefault();
-    });
-
-    E('zip-save').onclick=()=>{
-      if(exporting||!shareList.length||updating)return;
-
-      const filename=E('zip-name').textContent;
-      const list=shareList.slice();
-      let picker=null;
-
-      try{
-        if(window.showSaveFilePicker){
-          picker=showSaveFilePicker({
-            suggestedName:filename,
-            types:[{
-              description:'ZIP',
-              accept:{'application/zip':['.zip']}
-            }]
-          });
-        }
-      }catch(e){
-        error(e);
-        return;
-      }
-
-      exporting=true;
-      ['zip-save','share-close','clinic-button'].forEach(id=>{
-        E(id).disabled=true;
-      });
-
-      createZip(list,filename,picker).catch(e=>{
-        E('share-status').textContent=e.name==='AbortError'
-          ?'保存キャンセル'
-          :'ZIP保存失敗: '+e.message;
-      }).finally(()=>{
-        exporting=false;
-        ['zip-save','share-close','clinic-button'].forEach(id=>{
-          E(id).disabled=false;
-        });
-        E('zip-progress').hidden=true;
-      });
-    };
-
-    async function createZip(list,filename,picker){
-      let sink;
-
-      try{
-        await queue;
-
-        if(picker){
-          const handle=await picker;
-          const w=await handle.createWritable();
-
-          sink={
-            write:v=>w.write(v),
-            close:()=>w.close(),
-            abort:()=>w.abort()
-          };
-        }else{
-          const parts=[];
-          let size=0;
-          const limit=256*1024*1024;
-
-          if(list.reduce((n,s)=>n+(s.audioBytes||0),0)>limit){
-            throw Error(
-              '逐次保存非対応のため256MiBまでです。期間を分割してください。'
-            );
-          }
-
-          sink={
-            async write(v){
-              size+=v.length;
-              if(size>limit){
-                throw Error('メモリ保護上限256MiBを超えました');
-              }
-              parts.push(v);
-            },
-
-            async close(){
-              const url=URL.createObjectURL(
-                new Blob(parts,{type:'application/zip'})
-              );
-              parts.length=0;
-
-              const link=document.createElement('a');
-              link.href=url;
-              link.download=filename;
-              document.body.append(link);
-              link.click();
-              link.remove();
-
-              setTimeout(()=>URL.revokeObjectURL(url),120000);
-            },
-
-            async abort(){
-              parts.length=0;
-            }
-          };
-        }
-
-        const zip=new Zip(sink);
-        const used=new Set();
-
-        const paths=list.map(s=>{
-          if(list.length===1)return '';
-
-          const d=new Date(s.startTimeMs);
-          const base=
-            `sess_${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_`+
-            `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
-
-          let name=base;
-          let n=2;
-          while(used.has(name))name=base+'_'+n++;
-          used.add(name);
-
-          return 'sessions/'+name+'/';
-        });
-
-        E('zip-progress').hidden=false;
-        E('zip-progress').value=0;
-
-        if(list.length>1){
-          await zip.entry('sessions/');
-
-          await zip.text(
-            'manifest.json',
-            JSON.stringify({
-              format:'zip-store-v1',
-              exportType:'multi_session',
-              patientId:list.every(s=>s.patientId===list[0].patientId)
-                ?list[0].patientId||'UNREGISTERED'
-                :'UNREGISTERED',
-              sessionCount:list.length,
-              sessions:list.map((s,i)=>({
-                sessionId:s.sessionId,
-                path:paths[i],
-                manifestFile:paths[i]+'session_manifest.json'
-              }))
-            },null,2)
-          );
-
-          await zip.text(
-            'README.txt',
-            '各sessionsフォルダ内のsession_manifest.jsonとlog.jsonが正本です。'+
-            '音声同期再生・SomnoGraph互換性は未検証です。'
-          );
-        }
-
-        for(let i=0;i<list.length;i++){
-          E('share-status').textContent=`ZIP生成 ${i+1}/${list.length}件`;
-
-          await exportSession(
-            zip,
-            list[i],
-            paths[i],
-            list.length===1?'manifest.json':'session_manifest.json'
-          );
-
-          E('zip-progress').value=(i+1)/list.length*99;
-        }
-
-        await zip.finish();
-        E('zip-progress').value=100;
-
-        E('share-status').textContent=picker
-          ?'ファイル書き込み完了。解凍と再生を確認してください。'
-          :'ダウンロードを要求しました。ブラウザで保存完了を確認してください。';
-
-      }catch(e){
-        if(sink){
-          try{
-            await sink.abort();
-          }catch(x){}
-        }
-        throw e;
-      }
-    }
-
-    E('capture-help-button').onclick=()=>E('usage-dialog').showModal();
-
-    document.querySelectorAll('[data-help]').forEach(button=>{
-      button.onclick=()=>message(
-        '記録について',
-        '音量ログは増幅前、保存音声はゲイン補正後です。'+
-        '空白は欠測です。音声は機微な情報として扱ってください。'
-      );
-    });
-
-    async function fresh(url){
-      const u=new URL(url);
-      u.searchParams.set('_cb',Date.now()+'-'+uid());
-
-      const c=new AbortController();
-      const t=setTimeout(()=>c.abort(),20000);
-
-      try{
-        const r=await fetch(u,{
-          cache:'no-store',
-          credentials:'omit',
-          referrerPolicy:'no-referrer',
-          signal:c.signal
-        });
-
-        if(!r.ok)throw Error('更新取得 HTTP '+r.status);
-        return await r.text();
-      }finally{
-        clearTimeout(t);
-      }
-    }
-
-    function config(){
-      try{
-        return JSON.parse(localStorage.getItem(UK)||'null');
-      }catch(e){
-        return null;
-      }
-    }
-
-    function validate(c){
-      if(
-        !c||
-        !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(c.repository)||
-        !c.branch||
-        !c.path?.endsWith('.html')||
-        c.path.startsWith('/')||
-        c.path.split('/').includes('..')
-      ){
-        throw Error(
-          'GitHub設定はowner/repo、branch、相対.htmlパスで指定してください'
-        );
-      }
-      return c;
-    }
-
-    async function configure(){
-      if(active||busy||exporting||updating)return;
-
-      const old=config()||{};
-      const repository=prompt(
-        '信頼する公開GitHubのowner/repo。空欄で解除。',
-        old.repository||''
-      );
-
-      if(repository===null)return;
-
-      if(!repository.trim()){
-        localStorage.removeItem(UK);
-        warn('GitHub更新を解除しました');
-        return;
-      }
-
-      const branch=prompt('ブランチ',old.branch||'main');
-      if(branch===null)return;
-
-      const path=prompt(
-        'HTMLパス',
-        old.path||'SomnoLog_v20261010-01.html'
-      );
-      if(path===null)return;
-
-      const c=validate({
-        repository:repository.trim(),
-        branch:branch.trim(),
-        path:path.trim()
-      });
-
-      if(!confirm(
-        'このリポジトリのコードを実行する更新元として保存しますか？'
-      ))return;
-
-      localStorage.setItem(UK,JSON.stringify(c));
-      await checkUpdate();
-    }
-
-    async function checkUpdate(){
-      if(active||busy||exporting||updating)return;
-
-      const c=config();
-      if(!c)return;
-      validate(c);
-
-      const api=new URL(
-        `https://api.github.com/repos/${c.repository}/commits`
-      );
-
-      api.searchParams.set('sha',c.branch);
-      api.searchParams.set('path',c.path);
-      api.searchParams.set('per_page','1');
-
-      const result=JSON.parse(await fresh(api.href));
-      const sha=result[0]?.sha;
-
-      if(!/^[a-f0-9]{40}$/i.test(sha||'')){
-        throw Error('最新コミットが取得できません');
-      }
-
-      const appliedKey=UK+'.applied.'+c.repository+'.'+c.path;
-      const actualLoaded=document.documentElement.dataset.githubCommit;
-
-      if(actualLoaded===sha)return;
-
-      const text=await fresh(
-        `https://raw.githubusercontent.com/${c.repository}/${sha}/`+
-        c.path.split('/').map(encodeURIComponent).join('/')
-      );
-
-      if(
-        text.length>3*1024*1024||
-        !/<!doctype\s+html/i.test(text)
-      ){
-        throw Error('更新HTML形式不正');
-      }
-
-      const doc=new DOMParser().parseFromString(text,'text/html');
-
-      for(const node of document.querySelectorAll('[id]')){
-        if(!doc.getElementById(node.id)){
-          throw Error('更新HTMLのDOM ID不足: '+node.id);
-        }
-      }
-
-      const scripts=doc.querySelectorAll('script');
-      if(scripts.length!==1||scripts[0].src){
-        throw Error('単一インラインscriptのHTMLが必要です');
-      }
-
-      if(active||busy||exporting||updating)return;
-
-      if(!confirm(
-        `最新コミット ${sha}\n`+
-        `${c.repository}/${c.path}\n`+
-        '信頼するコードとして現在のページへ適用しますか？'+
-        '元ファイルは上書きしません。'
-      ))return;
-
-      updating=true;
-      controls();
-      await queue;
-
-      lifecycle.abort();
-      cancelAnimationFrame(raf);
-      clearInterval(clockInterval);
-
-      if(stream){
-        stream.getTracks().forEach(t=>{
-          t.onended=null;
-          t.stop();
-        });
-      }
-
-      if(ctx)await ctx.close();
-      if(wake)await wake.release().catch(()=>{});
-      if(db)db.close();
-      if(releaseLock)releaseLock();
-
-      localStorage.setItem(appliedKey,sha);
-      doc.documentElement.dataset.githubCommit=sha;
-      doc.documentElement.dataset.githubUpdateSource=
-        c.repository+'/'+c.path;
-
-      const full='<!DOCTYPE html>\n'+doc.documentElement.outerHTML;
-
-      document.open();
-      document.write(full);
-      document.close();
-    }
-
-    E('capture-heading').title='ダブルクリックでGitHub更新設定';
-    E('capture-heading').addEventListener('dblclick',()=>{
-      configure().catch(error);
-    });
-
-    window.SomnoLogSettings=Object.freeze({
-      checkUpdate,
-      configureUpdate:configure,
-
-      setPatientId(value){
-        if(active||busy||exporting||updating){
-          throw Error('処理中は変更できません');
-        }
-
-        const id=String(value||'').trim()||'UNREGISTERED';
-
-        if(id.length>128){
-          throw Error('患者IDは128文字以内');
-        }
-
-        localStorage.setItem('SomnoLog.patientId',id);
-        return id;
-      },
-
-      getBuild:()=>BUILD
-    });
-
-    
-async function openDB(){
-  const defs=[
-    ['sessions','sessionId',false],
-    ['sessionLogs','id',true],
-    ['profileBins','id',true],
-    ['clips','clipId',false],
-    ['audioChunks','chunkId',true]
-  ];
-  const open=version=>new Promise((ok,no)=>{
-    const r=version===undefined?indexedDB.open('SomnoLog'):indexedDB.open('SomnoLog',version);
-    r.onupgradeneeded=()=>{
-      for(const [name,keyPath,autoIncrement] of defs){
-        const store=r.result.objectStoreNames.contains(name)
-          ?r.transaction.objectStore(name)
-          :r.result.createObjectStore(name,{keyPath,autoIncrement});
-        if(name!=='sessions'){
-          if(store.indexNames.contains('sessionId')){
-            const index=store.index('sessionId');
-            if(index.keyPath!=='sessionId'||index.unique||index.multiEntry){
-              store.deleteIndex('sessionId');
-            }
-          }
-          if(!store.indexNames.contains('sessionId')){
-            store.createIndex('sessionId','sessionId',{unique:false});
-          }
-        }
-      }
-    };
-    r.onerror=()=>no(r.error);
-    r.onblocked=()=>warn('DB確認中です。ほかのSomnoLogタブを閉じてください。');
-    r.onsuccess=()=>ok(r.result);
-  });
-  let d=await open();
-  let repair=false;
-  for(const [name] of defs){
-    if(!d.objectStoreNames.contains(name)){repair=true;continue;}
-    if(name!=='sessions'){
-      const store=d.transaction(name).objectStore(name);
-      if(!store.indexNames.contains('sessionId')){repair=true;continue;}
-      const index=store.index('sessionId');
-      if(index.keyPath!=='sessionId'||index.unique||index.multiEntry)repair=true;
-    }
-  }
-  if(repair){
-    const version=d.version+1;
-    d.close();
-    d=await open(version);
-  }
-  d.onversionchange=()=>{
-    d.close();
-    db=null;
-    warn('DBが別タブで変更されました。再読み込みしてください。');
-    controls();
-    if(active)stop().catch(error);
-  };
-  return d;
+function invalidate(){
+result=null;pending=null;$("resultPreview").hidden=true;$("emptyPreview").hidden=false;
+["patientQr","largeQr","printQr"].forEach(id=>$(id).replaceChildren());$("openPatient").removeAttribute("href");$("checked").checked=false;setStep(1);
 }
-  
+["chart","patientName"].forEach(id=>$(id).addEventListener("input",invalidate));
+function applyConfigUI(){
+const c=state.active,enabled=!!c&&storageOK&&!startError;
+$("headerClinic").textContent=c?c.clinicName+" 様":"診療所情報を読み込んでください";
+$("patientForm").querySelectorAll("input,button").forEach(el=>el.disabled=!enabled);
+$("notice").classList.toggle("error",!!startError);
+$("notice").textContent=startError||(c?"診療所情報を読み込みました。発行シリアル："+c.serial:"①の管理QRを読み込んでください。標準カメラで読み取ってこの画面を開いた場合は、自動で引き継ぎます。");
+}
+try{
+const u=new URL(location.href),s=u.searchParams.get("clinic");
+if(s&&storageOK){const c=validateConfig(decode(s));const d=load();d.active=c;localStorage.setItem(STORE,JSON.stringify(d));state=d;u.searchParams.delete("clinic");try{history.replaceState(null,"",u.href)}catch{}}
+}catch(e){startError=e.message}
+applyConfigUI();
 
-  async function recover(){
-      await loadHistory();
+async function imageSupported(){try{return typeof BarcodeDetector!=="undefined"&&(await BarcodeDetector.getSupportedFormats()).includes("qr_code")}catch{return false}}
+$("readQR").onclick=async()=>{
+$("incomingURL").value="";$("readDialog").showModal();
+const supported=await imageSupported();$("selectImage").disabled=!supported;
+$("imageSupport").textContent=supported?"このブラウザはQR画像読込に対応しています。画像は端末内で処理します。":"このブラウザはQR画像読込に非対応です。標準カメラで①のQRを読み取り、URLを貼り付けてください。";
+};
+$("closeRead").onclick=()=>$("readDialog").close();
+async function acceptURL(value){
+const u=new URL(str(value,"起動URL",18000));if(u.protocol!=="https:"||u.username||u.password)throw Error("①のHTTPS起動URLを使用してください。");
+const c=validateConfig(decode(u.searchParams.get("clinic")));
+if(!confirm(c.clinicName+"\nシリアル："+c.serial+"\nこの診療所情報を読み込みますか？"))return;
+await transact(d=>d.active=c);startError="";$("chart").value="";$("patientName").value="";invalidate();applyConfigUI();$("readDialog").close();toast("診療所情報を読み込みました。");
+}
+$("loadURL").onclick=async()=>{try{await acceptURL($("incomingURL").value.trim())}catch(e){toast(e.message)}};
+$("selectImage").onclick=()=>{$("imageFile").value="";$("imageFile").click()};
+$("imageFile").onchange=async()=>{
+const f=$("imageFile").files[0];if(!f)return;let bitmap;
+try{
+if(f.size>15*1024*1024||!f.type.startsWith("image/"))throw Error("15MB以下の画像を選択してください。");
+if(!await imageSupported())throw Error("URL貼り付けを使用してください。");
+bitmap=await createImageBitmap(f);
+const c=document.createElement("canvas"),scale=Math.min(1,2400/Math.max(bitmap.width,bitmap.height));c.width=Math.max(1,Math.round(bitmap.width*scale));c.height=Math.max(1,Math.round(bitmap.height*scale));c.getContext("2d").drawImage(bitmap,0,0,c.width,c.height);
+const codes=await new BarcodeDetector({formats:["qr_code"]}).detect(c),values=[...new Set(codes.map(x=>x.rawValue))];
+if(values.length!==1)throw Error(values.length?"QRが複数あります。1つだけの画像を使用してください。":"QRを読み取れません。鮮明な画像かURL貼り付けを使用してください。");
+await acceptURL(values[0]);
+}catch(e){toast(e.message)}finally{bitmap?.close()}
+};
+function addFact(l,v){const dt=document.createElement("dt"),dd=document.createElement("dd");dt.textContent=l;dd.textContent=v;$("confirmDetails").append(dt,dd)}
+$("patientForm").onsubmit=e=>{
+e.preventDefault();
+try{
+if(!state.active||startError)throw Error("管理QRを読み込んでください。");
+const chart=str($("chart").value,"カルテ番号",64),name=str($("patientName").value,"患者名",80,true);
+pending={clinic:{...state.active},chart,name};$("confirmDetails").replaceChildren();addFact("診療所名",pending.clinic.clinicName);addFact("カルテ番号",chart);addFact("患者名",name||"未入力");addFact("利用方式","単発・10回枠");setStep(2);$("confirmDialog").showModal();
+}catch(e){toast(e.message)}
+};
+$("cancelConfirm").onclick=()=>$("confirmDialog").close();
+$("confirmDialog").addEventListener("close",()=>{pending=null;if(!result)setStep(1)});
+function payload(c,chart,name){
+return{version:1,environment:"production",env:"production",clinicName:c.clinicName,serial:c.serial,issuedOn:c.issuedOn,logUrl:c.logUrl,activationEmail:c.activationEmail,logShareEmail:c.logShareEmail,chartNo:chart,patientName:name,usageMode:"single",usageCount:10,usageType:"single",maxApps:10};
+}
+function patientURL(c,p){const u=new URL(c.patientAppUrl);u.hash="slp="+encode(p);return u.href}
+$("confirmIssue").onclick=async()=>{
+if(!pending||$("confirmIssue").disabled)return;const button=$("confirmIssue");button.disabled=true;
+try{
+const next={...pending},p=payload(next.clinic,next.chart,next.name),u=patientURL(next.clinic,p);
+const probe=document.createElement("div");if(typeof QRCode==="undefined")throw Error("QRライブラリを読み込めません。");new QRCode(probe,{text:u,width:210,height:210,correctLevel:QRCode.CorrectLevel.M});
+const r={id:uid(),issuedAt:new Date().toISOString(),clinic:next.clinic,patient:p,url:u};
+await transact(d=>{
+if(JSON.stringify(d.active)!==JSON.stringify(next.clinic))throw Error("診療所情報が変更されました。");
+const old=d.records.find(x=>x.clinic.serial===next.clinic.serial);
+if(old&&old.patient.chartNo!==next.chart)throw Error("このシリアルは別のカルテ番号に割当済みです。新しい管理QRを使用してください。");
+const e={eventId:uid(),type:old?"patient_qr_reissued":"patient_qr_issued",occurredAt:r.issuedAt,source:"clinic-qr",appVersion:"V7",environment:"production",clinicName:next.clinic.clinicName,serial:next.clinic.serial,chartNo:next.chart,patientName:next.name};
+r.issuanceId=old?.issuanceId||e.eventId;e.issuanceId=r.issuanceId;d.records.push(r);d.events.push(e);
+});
+result=r;displayResult();$("confirmDialog").close();setStep(3);toast("患者QRと発行実績を保存しました。");
+}catch(e){toast(e.message)}finally{button.disabled=false}
+};
+function patientLabel(r){return r.patient.patientName?r.patient.patientName+" 様":"患者名未入力"}
+function displayResult(){
+if(!result)return;
+drawQr("patientQr",result.url,210);$("resultName").textContent=patientLabel(result);$("resultChart").textContent="カルテ番号："+result.patient.chartNo;
+$("openPatient").href=result.url;$("activationMail").disabled=!result.clinic.activationEmail;
+$("mailStatus").textContent=result.clinic.activationEmail?"メールアプリで本文を確認し送信してください。":"開通通知の宛先は①で設定してください。";
+$("emptyPreview").hidden=true;$("resultPreview").hidden=false;
+}
+$("enlarge").onclick=()=>{if(!result)return;try{$("largeName").textContent=patientLabel(result);$("largeChart").textContent=result.clinic.clinicName+" ／ "+result.patient.chartNo;drawQr("largeQr",result.url,330);$("largeDialog").showModal()}catch(e){toast(e.message)}};
+$("closeLarge").onclick=()=>$("largeDialog").close();
+$("print").onclick=async()=>{
+if(!result)return;
+try{$("printName").textContent=patientLabel(result);$("printChart").textContent=result.clinic.clinicName+" ／ カルテ番号："+result.patient.chartNo+" ／ 単発・10回枠";$("printSerial").textContent="シリアル："+result.clinic.serial;drawQr("printQr",result.url,340);await new Promise(r=>setTimeout(r,300));window.print()}catch(e){toast(e.message)}
+};
+$("saveQR").onclick=()=>{
+if(!result)return;
+try{
+const el=$("patientQr"),canvas=el.querySelector("canvas");
+if(canvas){canvas.toBlob(b=>{if(!b)return toast("画像を生成できません。");const u=URL.createObjectURL(b),a=document.createElement("a");a.href=u;a.download="SomnoLog-patient-QR.png";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)},"image/png");return}
+const img=el.querySelector("img");if(!img)throw Error("QR画像がありません。");const a=document.createElement("a");a.href=img.src;a.download="SomnoLog-patient-QR.png";document.body.append(a);a.click();a.remove();
+}catch(e){toast(e.message)}
+};
+$("activationMail").onclick=async()=>{
+if(!result||!result.clinic.activationEmail)return;
+if(!confirm("③の起動・開通確認後に送信してください。メールアプリを開きます。送信完了はこの画面では判定できません。"))return;
+const r=result,button=$("activationMail");button.disabled=true;
+try{
+await transact(d=>d.events.push({eventId:uid(),type:"activation_email_compose_requested",occurredAt:new Date().toISOString(),source:"clinic-qr",appVersion:"V7",environment:"production",clinicName:r.clinic.clinicName,serial:r.clinic.serial,issuanceId:r.issuanceId}));
+const subject="睡眠記録サービス・使用開始／開通通知";
+const body=["②使用開始・患者用QR発行の通知","③の起動成功を自動判定した通知ではありません。","","診療所："+r.clinic.clinicName,"シリアル："+r.clinic.serial,"発行識別番号："+r.issuanceId,"作成日時："+new Date().toISOString()].join("\r\n");
+const a=document.createElement("a");a.href="mailto:"+r.clinic.activationEmail+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);document.body.append(a);a.click();a.remove();$("mailStatus").textContent="メール作成を要求しました。メールアプリで送信してください。";
+}catch(e){toast(e.message)}finally{button.disabled=false}
+};
+function renderTools(){
+$("eventCount").textContent=state.events.length+"イベント。患者情報を含みます。";
+$("history").innerHTML=`<table><thead><tr><th>日時</th><th>カルテ番号</th><th>患者名</th><th></th></tr></thead><tbody>${state.records.map((r,i)=>`<tr><td>${esc(r.issuedAt)}</td><td>${esc(r.patient.chartNo)}</td><td>${esc(r.patient.patientName)}</td><td><button class="btn outline" style="padding:6px" data-history="${i}">表示</button></td></tr>`).join("")}</tbody></table>`;
+$("history").querySelectorAll("[data-history]").forEach(b=>b.onclick=async()=>{
+try{const r=state.records[Number(b.dataset.history)];await transact(d=>d.active=r.clinic);startError="";result=r;applyConfigUI();$("chart").value=r.patient.chartNo;$("patientName").value=r.patient.patientName;$("checked").checked=false;displayResult();setStep(3);$("toolsDialog").close()}catch(e){toast(e.message)}
+});
+try{const g=readGithub();$("gRepo").value=g?.repo||"";$("gBranch").value=g?.branch||"main";$("gPath").value=g?.path||"";$("gAuto").checked=g?.auto||false}catch(e){toast(e.message)}
+}
+$("openTools").onclick=()=>{renderTools();$("toolsDialog").showModal()};
+$("closeTools").onclick=()=>$("toolsDialog").close();
+$("exportEvents").onclick=()=>{
+try{if(!confirm("患者情報を含む実績ファイルを安全な場所へ保存してください。"))return;const d=load();save("SomnoLog-clinic-events-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify({format:"somnolog-events",version:1,source:"clinic-qr",appVersion:"V7",exportedAt:new Date().toISOString(),events:d.events},null,2))}catch(e){toast(e.message)}
+};
+$("backup").onclick=()=>{try{save("SomnoLog-clinic-backup.json",JSON.stringify({format:"somnolog-clinic-backup",version:1,data:load()},null,2))}catch(e){toast(e.message)}};
+$("restore").onclick=()=>{$("backupFile").value="";$("backupFile").click()};
+$("backupFile").onchange=async()=>{
+const f=$("backupFile").files[0];if(!f)return;
+try{
+if(f.size>20*1024*1024)throw Error("20MB以下のファイルを使用してください。");
+const o=JSON.parse(await f.text());if(o.format!=="somnolog-clinic-backup"||o.version!==1)throw Error("②のバックアップではありません。");
+const d=normalize(o.data),bindings=new Map();
+for(const r of d.records){
+const c=validateConfig(r.clinic),chart=str(r.patient.chartNo,"カルテ番号",64),name=str(r.patient.patientName,"患者名",80,true),p=payload(c,chart,name);
+if(JSON.stringify(p)!==JSON.stringify(r.patient)||r.url!==patientURL(c,p))throw Error("患者QRが不整合です。");
+if(bindings.has(c.serial)&&bindings.get(c.serial)!==chart)throw Error("患者割当が重複しています。");bindings.set(c.serial,chart);
+}
+for(const e of d.events){str(e.eventId,"実績ID",160);str(e.type,"種別",80);str(e.serial,"シリアル",160);str(e.clinicName,"診療所名",80);if(e.environment!=="production"||!Number.isFinite(Date.parse(e.occurredAt)))throw Error("実績が不正です。")}
+if(!confirm("現在の保存内容を置き換えます。先にバックアップしましたか？"))return;
+await transact(n=>{Object.keys(n).forEach(k=>delete n[k]);Object.assign(n,d)});location.reload();
+}catch(e){toast(e.message)}
+};
+function githubConfig(o){
+if(!o||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(o.repo))throw Error("所有者／リポジトリを確認してください。");
+const branch=str(o.branch,"ブランチ",160),path=str(o.path,"パス",500);
+if(/[\s?#\\]/.test(branch)||!path.endsWith(".html")||path.startsWith("/")||path.split("/").some(x=>!x||x==="."||x===".."))throw Error("ブランチ・パスを確認してください。");
+return{repo:o.repo,branch,path,auto:o.auto===true};
+}
+function readGithub(){
+const s=localStorage.getItem(GKEY);
+return s
+  ? githubConfig(JSON.parse(s))
+  : githubConfig(GITHUB_DEFAULT);
+}
+$("githubForm").onsubmit=e=>{
+e.preventDefault();
+try{const g=githubConfig({repo:$("gRepo").value.trim(),branch:$("gBranch").value.trim(),path:$("gPath").value.trim(),auto:$("gAuto").checked});localStorage.setItem(GKEY,JSON.stringify(g));candidate=null;$("applyUpdate").hidden=true;toast("更新先を保存しました。")}catch(e){toast(e.message)}
+};
+async function fetchText(u){
+const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),15000);
+try{
+const r=await fetch(u,{cache:"no-store",credentials:"omit",referrerPolicy:"no-referrer",signal:ctrl.signal});if(!r.ok)throw Error("GitHub HTTP "+r.status);
+const reader=r.body.getReader(),chunks=[];let size=0;
+while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>3000000){await reader.cancel();throw Error("更新データが大きすぎます。");}chunks.push(value)}
+const a=new Uint8Array(size);let p=0;for(const c of chunks){a.set(c,p);p+=c.length}return new TextDecoder("utf-8",{fatal:true}).decode(a);
+}finally{clearTimeout(t)}
+}
+async function checkUpdate(){
+if(updateBusy)return;updateBusy=true;candidate=null;$("applyUpdate").hidden=true;$("checkUpdate").disabled=true;
+try{
+const g=readGithub();if(!g)throw Error("更新先を設定してください。");
+$("updateStatus").textContent="最新コミットを確認しています。";
 
-      for(const s of history){
-        if(s.status!=='recording')continue;
+const cacheBust=()=>Date.now().toString()+"-"+uid();
 
-        s.soundDetectedMs=0;
-        s.motionDetectedMs=0;
-        s.missingMs=0;
-        s.soundMissingMs=0;
-        s.motionMissingMs=0;
-        s.lastOffsetMs=0;
+const api=new URL("https://api.github.com/repos/"+g.repo+"/commits/"+encodeURIComponent(g.branch));
+api.searchParams.set("_cb",cacheBust());
 
-        await visit('sessionLogs',s.sessionId,r=>{
-          if(r.soundDetected===true){
-            s.soundDetectedMs+=r.durationMs;
-          }
-          if(r.motionDetected===true){
-            s.motionDetectedMs+=r.durationMs;
-          }
-          if(r.status==='missing'){
-            s.missingMs+=r.durationMs;
-          }
-          if(r.soundStatus==='missing'){
-            s.soundMissingMs+=r.durationMs;
-          }
-          if(r.motionStatus==='missing'){
-            s.motionMissingMs+=r.durationMs;
-          }
+const c=JSON.parse(await fetchText(api.href));
+if(!/^[a-f0-9]{40}$/.test(c.sha))throw Error("コミットSHAが不正です。");
 
-          s.lastOffsetMs=Math.max(
-            s.lastOffsetMs,
-            r.offsetMs+r.durationMs
-          );
-        });
+const raw=new URL(
+  "https://raw.githubusercontent.com/"+g.repo+"/"+c.sha+"/"+
+  g.path.split("/").map(encodeURIComponent).join("/")
+);
+raw.searchParams.set("_cb",cacheBust());
 
-        s.audioBytes=0;
-        await visit('audioChunks',s.sessionId,r=>{
-          s.audioBytes+=r.blob.size;
-        });
-
-        s.status='recovered';
-        s.durationMs=s.lastOffsetMs;
-        s.stopTimeMs=s.startTimeMs+s.lastOffsetMs;
-        s.stopTime=new Date(s.stopTimeMs).toISOString();
-        s.recoveredAt=new Date().toISOString();
-
-        s.warnings=[
-          ...(s.warnings||[]),
-          '未完了復旧。最後の未保存音声・統計・区間は欠落する場合があります。'
-        ];
-
-        await put('sessions',s);
-        warn('未完了記録をrecoveredとして保護しました');
-      }
-    }
-
-    async function lock(){
-      if(!navigator.locks){
-        warn('タブ排他非対応。1つのタブだけで使用してください。');
-        return true;
-      }
-
-      return new Promise((ok,no)=>{
-        navigator.locks.request(
-          'SomnoLog.application',
-          {ifAvailable:true},
-          async l=>{
-            if(!l)return ok(false);
-
-            const hold=new Promise(r=>{
-              releaseLock=r;
-            });
-
-            ok(true);
-            await hold;
-          }
-        ).catch(no);
-      });
-    }
-
-    on(window,'beforeunload',e=>{
-      if(active||busy||exporting){
-        e.preventDefault();
-        e.returnValue='';
-      }
-    });
-
-    async function init(){
-      status();
-      controls();
-
-      if(!isSecureContext){
-        warn('HTTPSまたはlocalhostで使用してください');
-      }
-
-      if(!window.indexedDB){
-        throw Error('IndexedDB非対応');
-      }
-
-      if(!await lock()){
-        warn('別のSomnoLogタブを閉じて再読み込みしてください');
-        E('microphone-permission').disabled=true;
-        E('motion-permission').disabled=true;
-        return;
-      }
-
-      db=await openDB();
-      await storageCheck();
-      await recover();
-      await loadHistory();
-
-      current=history[history.length-1]||null;
-      if(current)summary(current);
-
-      render();
-      controls();
-
-      if(navigator.storage?.persist){
-        try{
-          if(!await navigator.storage.persist()){
-            warn(
-              '永続ストレージ未許可。重要な記録はZIP保存してください。'
-            );
-          }
-        }catch(e){
-          warn('永続保存確認失敗');
-        }
-      }
-
-      if(config()){
-        checkUpdate().catch(e=>{
-          warn('更新確認失敗。現行版で続行: '+e.message);
-        });
-      }
-    }
-
-    init().catch(error);
-  })();
-  </script>
-  </body>
-  </html>
+const source=await fetchText(raw.href),
+      d=new DOMParser().parseFromString(source,"text/html"),
+      n=Number(d.querySelector('meta[name="somnolog-version"]')?.content);
+if(d.querySelector('meta[name="somnolog-app"]')?.content!=="clinic"||!Number.isSafeInteger(n))throw Error("②の更新HTMLではありません。");
+if(n<=VERSION){$("updateStatus").textContent="新しい版はありません。\nコミット："+c.sha;return}
+candidate={source,sha:c.sha,title:d.title,repo:g.repo};$("applyUpdate").hidden=false;$("updateStatus").textContent=d.title+"\nコミット："+c.sha+"\n確認後に適用してください。";
+}catch(e){$("updateStatus").textContent="更新確認："+e.message}finally{updateBusy=false;$("checkUpdate").disabled=false}
+}
+$("checkUpdate").onclick=checkUpdate;
+$("applyUpdate").onclick=()=>{
+if(!candidate)return;
+if(!confirm(candidate.repo+"\n"+candidate.title+"\n信頼する更新先ですか？未保存の入力は失われます。必要なバックアップを保存してから適用してください。"))return;
+document.open();document.write(candidate.source);document.close();
+};
+window.addEventListener("storage",e=>{if(e.key===STORE)toast("別タブでデータが変更されました。再読み込みしてください。")});
+try{if(readGithub()?.auto)checkUpdate()}catch(e){$("updateStatus").textContent=e.message}
+</script>
+</body>
+</html>
