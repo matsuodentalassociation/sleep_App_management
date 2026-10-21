@@ -5,27 +5,34 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="somnolog-app" content="clinic">
-<meta name="somnolog-version" content="8">
-<title>② 診療所用患者QR発行 V8</title>
+<meta name="somnolog-version" content="9">
+<title>② 診療所用患者QR発行 V9</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js" referrerpolicy="no-referrer"></script>
 <style>
 :root{--ink:#203c4c;--muted:#70828d;--brand:#137e83;--line:#dce6e9;--bg:#f2f6f7;--pale:#e9f5f3}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,"Noto Sans JP",sans-serif}
-button,input,textarea{font:inherit}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
 .version{background:#203c4c;color:white;padding:8px;text-align:center;font-size:12px;font-weight:700}
 main{max-width:1080px;margin:0 auto;padding:24px 24px 50px}
 .heading{margin-bottom:22px}
-.headingline{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
-.header-clinic{font-size:27px;font-weight:700;overflow-wrap:anywhere}
+.headingline{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.header-clinic{font-size:25px;font-weight:700;overflow-wrap:anywhere}
 .header-serial{display:flex;flex-direction:column;gap:4px;min-width:0;max-width:100%;color:var(--ink)}
-.header-serial-label{font-size:13px;font-weight:700;color:var(--muted)}
+.header-serial-label{font-size:12px;font-weight:700;color:var(--muted)}
 .header-serial-value{font-size:15px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
 .header-serial[data-loaded="false"] .header-serial-value{color:var(--muted)}
-h1{font-size:27px;margin:0}h2{font-size:18px;margin:0}h3{font-size:15px;margin:0 0 12px}
-p{line-height:1.8;margin:8px 0}.muted{color:var(--muted);font-size:12px}
+h1{font-size:26px;margin:0}
+h2{font-size:18px;margin:0}
+h3{font-size:15px;margin:0 0 12px}
+p{line-height:1.8;margin:8px 0}
+.muted{color:var(--muted);font-size:12px}
 .notice{font-size:12px;line-height:1.8;padding:12px 16px;border:1px solid #eadbb7;background:#fffaef;border-radius:8px;color:#81622e;margin:16px 0 24px}
 .error{background:#fff0f0;color:#a33434;border-color:#e8b9b9}
+.success{background:#eaf6ef;color:#397754;border-color:#c9e5d2}
 .steps{display:flex;gap:8px;margin-bottom:24px}
 .step{flex:1;color:#80909b;background:#e9eef1;padding:12px;border-radius:8px;font-size:12px}
 .step b{display:inline-grid;place-items:center;background:white;width:24px;height:24px;border-radius:50%;margin-right:8px}
@@ -34,8 +41,10 @@ p{line-height:1.8;margin:8px 0}.muted{color:var(--muted);font-size:12px}
 .panel{border:1px solid var(--line);border-radius:14px;background:white;padding:24px;margin-bottom:20px}
 .panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:20px}
 .facts{display:grid;grid-template-columns:112px 1fr;gap:16px;font-size:14px;margin:24px 0}
-.facts dt{color:var(--muted)}.facts dd{margin:0;overflow-wrap:anywhere}
-.field{margin-top:22px}label{display:block;font-weight:700;font-size:13px}
+.facts dt{color:var(--muted)}
+.facts dd{margin:0;overflow-wrap:anywhere}
+.field{margin-top:22px}
+label{display:block;font-weight:700;font-size:13px}
 .required{color:#a65b3b;background:#fff0e8;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px}
 .optional{color:#87969f;font-size:11px;font-weight:400;margin-left:8px}
 input,textarea{width:100%;margin-top:9px;border:1px solid #c8d6dd;background:white;border-radius:8px;padding:12px;color:var(--ink)}
@@ -43,14 +52,20 @@ input:focus,textarea:focus{outline:3px solid #cae6e3;border-color:var(--brand)}
 small{display:block;font-size:11px;color:var(--muted);font-weight:400;line-height:1.7;margin-top:7px}
 .segmented{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
 .mode{color:#176d66;border:2px solid var(--brand);border-radius:9px;padding:13px;background:#f0f9f7;text-align:left}
-.mode strong{display:block;font-size:14px}.mode span{font-size:11px;display:block;margin-top:5px}
-.countrow{display:flex;align-items:center;gap:10px;margin-top:12px}.countrow input{width:100px;margin:0;text-align:center}
+.mode strong{display:block;font-size:14px}
+.mode span{font-size:11px;display:block;margin-top:5px}
+.countrow{display:flex;align-items:center;gap:10px;margin-top:12px}
+.countrow input{width:100px;margin:0;text-align:center}
 .checklabel{display:flex;align-items:flex-start;gap:10px;font-weight:400;line-height:1.7;margin-top:24px}
 .checklabel input{width:17px;height:17px;margin:3px 0 0;flex:none;accent-color:var(--brand)}
 .btn{border:0;border-radius:8px;padding:13px 18px;background:var(--brand);color:white;font-weight:700;text-decoration:none;display:inline-block}
-.btn.secondary{background:#eaf1f4;color:#3a6273}.btn.outline{background:white;border:1px solid #cbd9df;color:#54707e}
-.wide{width:100%}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.actions .btn{flex:1}
-.preview{text-align:center}.preview h2{font-size:17px}
+.btn.secondary{background:#eaf1f4;color:#3a6273}
+.btn.outline{background:white;border:1px solid #cbd9df;color:#54707e}
+.wide{width:100%}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.actions .btn{flex:1}
+.preview{text-align:center}
+.preview h2{font-size:17px}
 .qrplaceholder{width:210px;height:210px;max-width:100%;margin:24px auto;border:2px dashed #d8e3e6;border-radius:12px;display:flex;align-items:center;justify-content:center;background:#f8fafb;color:#8a9ba6;line-height:1.9;font-size:12px}
 .qr{display:flex;justify-content:center;padding:16px;background:white;margin:16px auto;width:242px;max-width:100%}
 .qr img,.qr canvas{max-width:100%;height:auto}
@@ -58,52 +73,71 @@ small{display:block;font-size:11px;color:var(--muted);font-weight:400;line-heigh
 .num{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:50%;background:#eaf1f4;font-size:11px;color:#527384;font-weight:800}
 .help p{margin:0;font-size:12px;color:#6b818d}
 .footnote{text-align:center;color:#8a99a2;font-size:11px;margin-top:20px}
-.success{background:#eaf6ef;color:#397754;padding:11px;border-radius:7px;font-size:12px;margin:16px 0}
 .patientname{font-size:22px;font-weight:800;margin:15px 0 3px;overflow-wrap:anywhere}
 .usagebadge{display:inline-block;background:#edf3f8;color:#486b87;padding:5px 12px;border-radius:6px;font-size:12px;margin-top:10px}
 .state{border-top:1px solid #e5edef;padding-top:13px;margin-top:15px;font-size:11px;color:#7e909b}
 .badge{font-size:11px;background:var(--pale);color:#21736e;border-radius:20px;padding:6px 11px;display:inline-block;font-weight:700}
 dialog{border:0;border-radius:15px;padding:26px;max-width:calc(100% - 30px);max-height:90vh;overflow:auto;width:540px;color:var(--ink);box-shadow:0 20px 90px #15334544}
-dialog::backdrop{background:#18334477}.confirmbox{padding:15px;border-radius:9px;background:#f5f8fa}
+dialog::backdrop{background:#18334477}
+.confirmbox{padding:15px;border-radius:9px;background:#f5f8fa}
 #toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);max-width:92%;padding:13px 20px;background:#214d5d;color:white;border-radius:8px;z-index:30;font-size:13px}
 .pre{white-space:pre-line;overflow-wrap:anywhere}
-.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
-[hidden]{display:none!important}#printArea{display:none}
+.tablewrap{overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-align:top}
+.camera-video{display:block;width:100%;max-height:50vh;background:#111;border-radius:10px;object-fit:contain}
+[hidden]{display:none!important}
+#printArea{display:none}
 @media(max-width:800px){
-.layout{grid-template-columns:1fr}h1,.header-clinic{font-size:23px}
-.headingline{gap:16px}.header-serial-value{font-size:13px}
-main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px}
-.step b{width:20px;height:20px;margin-right:4px}}
+.layout{grid-template-columns:1fr}
+h1,.header-clinic{font-size:22px}
+.headingline{gap:14px}
+.header-serial-value{font-size:13px}
+main{padding:20px 14px}
+.panel{padding:20px}
+.step{padding:10px 7px;font-size:11px}
+.step b{width:20px;height:20px;margin-right:4px}
+}
 @media print{
-@page{size:A4;margin:20mm}body{background:white}
+@page{size:A4;margin:20mm}
+body{background:white}
 .version,main,dialog,#toast{display:none!important}
 #printArea{display:block!important;text-align:center;padding:15mm;border:1px solid #ccc}
 #printArea .qr{width:80mm;margin:10mm auto}
 #printArea .qr img,#printArea .qr canvas{width:70mm!important;height:70mm!important}
-#printArea h1{font-size:24px}}
+#printArea h1{font-size:24px}
+}
 </style>
 </head>
 <body>
-<div class="version">② 診療所用患者QR発行 V8</div>
+<div class="version">② 診療所用患者QR発行 V9</div>
 <main>
 <div class="heading">
 <div class="headingline">
-<span class="header-clinic" id="headerClinic">診療所情報を読み込んでください</span>
+<span class="header-clinic" id="headerClinic">起動用カードを読み込んでください</span>
 <div class="header-serial" id="headerSerialBlock" data-loaded="false" role="status" aria-live="polite">
 <span class="header-serial-label">シリアルナンバー</span>
-<span class="header-serial-value" id="headerSerial">未読込</span>
+<span class="header-serial-value" id="headerSerial">未登録</span>
 </div>
-<h1>QRの発行</h1>
+<h1>患者用QRの発行</h1>
 </div>
-<p class="muted">患者情報を補完し、患者さん自身の端末で読むQRを発行してください。</p>
-<div class="actions"><button class="btn" id="readQR">QRコードを読み込む</button><button class="btn outline" id="openTools">実績・履歴・設定</button></div>
+<p class="muted">起動用カードを読み込んだ後、シリアル登録QRを読み込んで患者用QRを発行してください。</p>
+<div class="actions">
+<button class="btn" id="readQR">シリアル登録QRを読み込む</button>
+<button class="btn outline" id="openTools">実績・履歴・設定</button>
 </div>
-<div id="notice" class="notice">①の管理QRを読み込んでください。標準カメラで読み取ってこの画面を開いた場合は、自動で引き継ぎます。</div>
+</div>
+
+<div id="notice" class="notice" role="status" aria-live="polite">
+起動用カードから②を開き、その後シリアル登録QRを読み込んでください。
+</div>
+
 <div class="steps">
-<div class="step active" id="step1"><b>1</b>患者情報を入力</div>
-<div class="step" id="step2"><b>2</b>内容を確認</div>
-<div class="step" id="step3"><b>3</b>患者が読み取り</div>
+<div class="step active" id="step1"><b>1</b>登録QRを読み込む</div>
+<div class="step" id="step2"><b>2</b>患者情報を入力</div>
+<div class="step" id="step3"><b>3</b>内容を確認・発行</div>
 </div>
+
 <div class="layout">
 <div>
 <section class="panel">
@@ -117,32 +151,33 @@ main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px
 <div class="field">
 <label for="patientName">患者名<span class="optional">任意</span></label>
 <input id="patientName" maxlength="80" autocomplete="off" placeholder="患者名を入力">
-<small>入力した情報はQRと発行実績に含まれます。</small>
+<small>入力した情報は患者用QRと発行実績に含まれます。</small>
 </div>
 <div class="field">
 <label>アプリの利用方式</label>
-<div class="segmented"><div class="mode"><strong>◉ 単発・10回枠</strong><span>回数の消費・有効状態の管理は③患者アプリで行います。</span></div></div>
+<div class="segmented"><div class="mode"><strong id="modeLabel">◉ 単発・10回枠</strong><span id="modeDescription">回数の消費・有効状態の管理は③患者アプリで行います。</span></div></div>
 <div class="countrow"><label for="usageCount">使用回数</label><input id="usageCount" value="10" readonly><span>回</span></div>
 </div>
-<label class="checklabel"><input type="checkbox" id="checked" required><span>患者情報・利用方式を確認しました。<br><span class="muted">患者情報を含むQRと実績の取り扱いを確認してください。</span></span></label>
+<label class="checklabel"><input type="checkbox" id="checked" required><span>患者情報・利用方式を確認しました。<br><span class="muted">患者情報を含むQRと発行実績の取り扱いを確認してください。</span></span></label>
 <button class="btn wide" id="reviewButton" style="margin-top:20px" type="submit">入力内容を確認する →</button>
-<p class="muted" style="text-align:center">次の確認画面で、患者用QRを発行します。</p>
+<p class="muted" style="text-align:center">次の確認画面で患者用QRを発行します。</p>
 </form>
 </section>
-<p class="footnote">備忘録カードへの手書きは、アプリへの情報登録にはなりません。</p>
+<p class="footnote">カードへの手書きは、アプリへの情報登録にはなりません。</p>
 </div>
+
 <div>
 <section class="panel preview">
 <h2>患者さんへ提示するQR</h2>
 <div id="emptyPreview">
-<div class="qrplaceholder"><div style="font-size:32px">▦<div style="font-size:12px;margin-top:12px">患者情報の確認後に<br>ここへQRが表示されます</div></div></div>
+<div class="qrplaceholder"><div><span style="font-size:32px">▦</span><div style="font-size:12px;margin-top:12px">必要な登録情報を読み込み、<br>患者情報を確認すると表示されます</div></div></div>
 <p class="muted">まだ発行していません。</p>
 </div>
 <div id="resultPreview" hidden>
 <div class="success">患者用QRを発行・保存しました</div>
 <div id="resultName" class="patientname"></div>
 <p id="resultChart" class="muted"></p>
-<span class="usagebadge">単発・10回枠</span>
+<span class="usagebadge" id="usageBadge">単発・10回枠</span>
 <div id="patientQr" class="qr"></div>
 <p><strong>患者さん自身の端末で<br>読み取ってください</strong></p>
 <div class="actions"><button class="btn secondary" id="enlarge">大きく表示</button><button class="btn outline" id="print">印刷</button></div>
@@ -152,12 +187,13 @@ main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px
 <div class="state">③の起動成功・メール送信完了・回数消費は、②から自動確認できません。</div>
 </div>
 </section>
+
 <section class="panel">
 <h3>診療所でのご案内</h3>
-<div class="help"><span class="num">1</span><p>患者情報を入力し、内容を確認して患者用QRを発行します。</p></div>
-<div class="help"><span class="num">2</span><p>患者さん自身のスマートフォンで、表示されたQRを読み取ってもらいます。</p></div>
-<div class="help"><span class="num">3</span><p>患者端末の睡眠記録アプリで、診療所名・カルテ番号・患者名を確認します。</p></div>
-<div class="help"><span class="num">4</span><p>開通確認後、通知メールをメールアプリで送信します。発行元の受信・照合で確認します。</p></div>
+<div class="help"><span class="num">1</span><p>起動用カードのQRを読み取り、②を開きます。</p></div>
+<div class="help"><span class="num">2</span><p>「シリアル登録QRを読み込む」から、患者用カードのQRを読み取ります。</p></div>
+<div class="help"><span class="num">3</span><p>カルテ番号・患者名を入力し、内容を確認して患者用QRを発行します。</p></div>
+<div class="help"><span class="num">4</span><p>患者さん自身の端末で患者用QRを読み取ってもらい、開通確認後に通知メールを作成します。</p></div>
 <p class="muted" style="margin-top:18px">患者端末からの開通通知・ログ共有通知には③側のメール機能が必要です。</p>
 </section>
 </div>
@@ -165,12 +201,16 @@ main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px
 </main>
 
 <dialog id="readDialog">
-<h2>QRコードを読み込む</h2>
-<p class="muted">①が発行したQR画像を選ぶか、標準カメラで読み取った起動URLを貼り付けてください。</p>
-<button class="btn" id="selectImage">QR画像を選んで読み込む</button>
-<p class="muted" id="imageSupport"></p>
-<label>読み取ったURL<textarea id="incomingURL" rows="5" placeholder="https://…?clinic=…"></textarea></label>
-<div class="actions"><button class="btn" id="loadURL">URLを読み込む</button><button class="btn secondary" id="closeRead">閉じる</button></div>
+<h2>シリアル登録QRをカメラで読み込む</h2>
+<p class="muted">「カメラを起動」を押し、①が発行したシリアル登録カードのQRコードをカメラに映してください。カメラが使えない場合は、QRの内容を下欄に貼り付けて読み込めます。</p>
+<video id="cameraVideo" class="camera-video" autoplay playsinline muted></video>
+<p id="cameraStatus" class="muted" role="status" aria-live="polite">「カメラを起動」を押してQRコードを読み取ってください。</p>
+<div class="actions">
+<button class="btn" id="startCamera" type="button">カメラを起動</button>
+<button class="btn secondary" id="stopCamera" type="button">カメラを停止</button>
+</div>
+<label for="incomingURL">QRの内容を手入力<textarea id="incomingURL" rows="4" placeholder="SL1.… または https://…"></textarea></label>
+<div class="actions"><button class="btn" id="loadURL" type="button">内容を読み込む</button><button class="btn secondary" id="closeRead" type="button">閉じる</button></div>
 </dialog>
 
 <dialog id="confirmDialog">
@@ -211,16 +251,16 @@ main{padding:20px 14px}.panel{padding:20px}.step{padding:10px 7px;font-size:11px
 
 <div id="toast" role="status" aria-live="polite" hidden></div>
 <div id="printArea"><p>睡眠記録サービス／患者用QR</p><h1 id="printName"></h1><p id="printChart"></p><div id="printQr" class="qr"></div><p id="printSerial" class="pre"></p><p>患者さん自身の端末で読み取ってください。</p></div>
-<input id="imageFile" type="file" accept="image/*" hidden>
 <input id="backupFile" type="file" accept=".json,application/json" hidden>
 
 <script>
 "use strict";
-const $=id=>document.getElementById(id),
-STORE="somnolog.clinic.production.v7",
-GKEY="somnolog.clinic.github",
-VERSION=8,
-GITHUB_DEFAULT={
+
+const $=id=>document.getElementById(id);
+const STORE="somnolog.clinic.production.v7";
+const GKEY="somnolog.clinic.github";
+const VERSION=9;
+const GITHUB_DEFAULT={
   repo:"matsuodentalassociation/sleep_App_management",
   branch:"main",
   path:"index.html",
@@ -230,290 +270,698 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 let state,storageOK=true,pending=null,result=null,timer,candidate=null,updateBusy=false,startError="";
 
 function toast(s){
-  $("toast").textContent=s;$("toast").hidden=false;clearTimeout(timer);
+  $("toast").textContent=s;
+  $("toast").hidden=false;
+  clearTimeout(timer);
   timer=setTimeout(()=>$("toast").hidden=true,6500);
 }
+
 function str(v,label,max,optional=false){
   if(typeof v!=="string"||v.length>max||(!optional&&!v.trim()))throw Error(label+"を確認してください。");
   return v.trim();
 }
+
 function web(v,optional=false){
-  if(optional&&!v)return "";
+  if(optional&&(v==null||v===""))return "";
   const u=new URL(str(v,"URL",2000));
   if(u.protocol!=="https:"||u.username||u.password||u.hostname.endsWith(".invalid"))
     throw Error("実際のHTTPS URLを使用してください。");
   return u.href;
 }
+
 function mail(v){
-  if(!v)return "";
+  if(v==null||v==="")return "";
   const s=str(v,"メール",254);
-  if(!/^[^\s@<>?,;:]+@[^\s@<>?,;:]+\.[^\s@<>?,;:]+$/.test(s))throw Error("メールアドレスが不正です。");
+  if(!/^[^\s@<>?,;:]+@[^\s@<>?,;:]+\.[^\s@<>?,;:]+$/.test(s))
+    throw Error("メールアドレスが不正です。");
   return s;
 }
+
 function uid(){
-  const a=new Uint8Array(16);crypto.getRandomValues(a);
+  const a=new Uint8Array(16);
+  crypto.getRandomValues(a);
   return Array.from(a,n=>n.toString(16).padStart(2,"0")).join("");
 }
+
 function encode(o){
   let s="";
   for(const b of new TextEncoder().encode(JSON.stringify(o)))s+=String.fromCharCode(b);
   return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
+
 function decode(s){
   if(typeof s!=="string"||!s||s.length>16000||!/^[A-Za-z0-9_-]+$/.test(s)||s.length%4===1)
-    throw Error("管理QRの形式が不正です。");
+    throw Error("QR情報の形式が不正です。");
   try{
     const b=atob(s.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-s.length%4)%4));
-    return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(Uint8Array.from(b,c=>c.charCodeAt(0))));
-  }catch{throw Error("管理QRを読み取れません。");}
+    return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(
+      Uint8Array.from(b,c=>c.charCodeAt(0))
+    ));
+  }catch{
+    throw Error("QR情報を読み取れません。");
+  }
 }
+
+function validateLaunchContext(o){
+  if(!o||Array.isArray(o)||o.version!==1||o.type!=="clinic-start"||o.environment!=="production")
+    throw Error("①が発行した本番用の起動QRではありません。");
+  const usageType=o.usageType;
+  if(!["ten_use","subscription"].includes(usageType))
+    throw Error("起動QRの使用区分が不正です。");
+  const usageLimit=usageType==="ten_use"?10:null;
+  if(o.usageLimit!==usageLimit)
+    throw Error("起動QRの使用上限が不正です。");
+  return{
+    version:1,
+    type:"clinic-start",
+    environment:"production",
+    issueId:str(o.issueId,"発行識別子",160),
+    clinicName:str(o.clinicName,"診療所名",80),
+    issuedOn:str(o.issuedOn,"発行日",40),
+    patientAppUrl:web(o.patientAppUrl),
+    analysisAppUrl:web(o.analysisAppUrl,true),
+    logUrl:web(o.logUrl,true),
+    logShareEmail:mail(o.logShareEmail),
+    usageType,
+    usageLimit
+  };
+}
+
+function validateSerialCard(o){
+  if(!o||Array.isArray(o)||o.version!==1||o.type!=="serial-registration"||o.environment!=="production")
+    throw Error("①が発行した本番用のシリアル登録QRではありません。");
+  const serial=str(o.serial,"シリアルナンバー",160);
+  const activationEmail=mail(o.activationEmail);
+  if(!activationEmail)throw Error("開通通知メールアドレスがありません。");
+  return{
+    version:1,
+    type:"serial-registration",
+    environment:"production",
+    issueId:str(o.issueId,"発行識別子",160),
+    serial,
+    activationEmail
+  };
+}
+
 function validateConfig(o){
   if(!o||Array.isArray(o)||o.version!==1||(o.environment??o.env)!=="production")
-    throw Error("①が発行した本番用管理QRを使用してください。");
+    throw Error("本番用の登録情報を使用してください。");
+  const usageType=o.usageType??"ten_use";
+  const usageLimit=o.usageLimit===undefined
+    ?(usageType==="ten_use"?10:null)
+    :o.usageLimit;
+  if(!["ten_use","subscription"].includes(usageType))
+    throw Error("使用区分が不正です。");
+  if(usageLimit!==(usageType==="ten_use"?10:null))
+    throw Error("使用上限が不正です。");
   return{
-    version:1,environment:"production",
+    version:1,
+    environment:"production",
     clinicName:str(o.clinicName,"診療所名",80),
     serial:str(o.serial,"シリアル",160),
     issuedOn:str(o.issuedOn,"発行日",40),
     patientAppUrl:web(o.patientAppUrl),
+    analysisAppUrl:web(o.analysisAppUrl,true),
     logUrl:web(o.logShareUrl??o.logUrl,true),
     activationEmail:mail(o.activationEmail),
-    logShareEmail:mail(o.logShareEmail)
+    logShareEmail:mail(o.logShareEmail),
+    usageType,
+    usageLimit,
+    issueId:typeof o.issueId==="string"?o.issueId:""
   };
 }
-function fresh(){return{active:null,records:[],events:[]};}
+
+function fresh(){
+  return{active:null,launchContext:null,records:[],events:[]};
+}
+
 function normalize(o){
-  if(!o||!Array.isArray(o.records)||!Array.isArray(o.events))throw Error("保存データが不正です。");
+  if(!o||!Array.isArray(o.records)||!Array.isArray(o.events))
+    throw Error("保存データが不正です。");
   if(o.active)o.active=validateConfig(o.active);
+  if(o.launchContext)o.launchContext=validateLaunchContext(o.launchContext);
+  else o.launchContext=null;
   return o;
 }
+
 function load(){
   const s=localStorage.getItem(STORE);
   return s?normalize(JSON.parse(s)):fresh();
 }
+
 try{
-  state=load();localStorage.setItem(STORE+".probe","1");localStorage.removeItem(STORE+".probe");
+  state=load();
+  localStorage.setItem(STORE+".probe","1");
+  localStorage.removeItem(STORE+".probe");
 }catch(e){
-  state=fresh();storageOK=false;
+  state=fresh();
+  storageOK=false;
   startError="保存領域エラー："+e.message+" 既存データは上書きしません。";
 }
+
 async function transact(fn){
   if(!storageOK)throw Error("保存領域を利用できません。");
   const run=()=>{
-    const next=load(),value=fn(next);
-    localStorage.setItem(STORE,JSON.stringify(next));state=next;
+    const next=load();
+    const value=fn(next);
+    localStorage.setItem(STORE,JSON.stringify(next));
+    state=next;
     return value;
   };
   return navigator.locks?navigator.locks.request(STORE,run):run();
 }
+
 function save(name,content,type="application/json"){
-  const u=URL.createObjectURL(new Blob([content],{type})),a=document.createElement("a");
-  a.href=u;a.download=name;document.body.append(a);a.click();a.remove();
+  const u=URL.createObjectURL(new Blob([content],{type}));
+  const a=document.createElement("a");
+  a.href=u;
+  a.download=name;
+  document.body.append(a);
+  a.click();
+  a.remove();
   setTimeout(()=>URL.revokeObjectURL(u),60000);
 }
+
 function setStep(n){
   [1,2,3].forEach(i=>$("step"+i).classList.toggle("active",i===n));
 }
+
 function drawQr(id,u,size){
-  if(typeof QRCode==="undefined")throw Error("QRライブラリを読み込めません。ネットワークを確認してください。");
-  const el=$(id);el.replaceChildren();
-  new QRCode(el,{text:u,width:size,height:size,correctLevel:QRCode.CorrectLevel.M});
+  if(typeof QRCode==="undefined")
+    throw Error("QRライブラリを読み込めません。ネットワークを確認してください。");
+  const el=$(id);
+  el.replaceChildren();
+  new QRCode(el,{
+    text:u,
+    width:size,
+    height:size,
+    correctLevel:QRCode.CorrectLevel.M
+  });
   el.removeAttribute("title");
-  const img=el.querySelector("img");if(img)img.alt="患者用QR";
+  const img=el.querySelector("img");
+  if(img)img.alt="患者用QR";
 }
+
 function invalidate(){
-  result=null;pending=null;
-  $("resultPreview").hidden=true;$("emptyPreview").hidden=false;
+  result=null;
+  pending=null;
+  $("resultPreview").hidden=true;
+  $("emptyPreview").hidden=false;
   ["patientQr","largeQr","printQr"].forEach(id=>$(id).replaceChildren());
-  $("openPatient").removeAttribute("href");$("checked").checked=false;setStep(1);
+  $("openPatient").removeAttribute("href");
+  $("checked").checked=false;
+  setStep(state?.active?2:1);
 }
+
 ["chart","patientName"].forEach(id=>$(id).addEventListener("input",invalidate));
 
 function applyConfigUI(){
-  const c=state.active,enabled=!!c&&storageOK&&!startError;
-  $("headerClinic").textContent=c?c.clinicName+" 様":"診療所情報を読み込んでください";
-  // ①の管理QRから読み取ったserialを、指定されたヘッダー位置に表示する。
-  // 新しい番号の生成・手入力・番号の置き換えは行わない。
-  $("headerSerial").textContent=c?(startError?"読込エラー（下記を確認）":c.serial):"未読込";
+  const c=state.active;
+  const launch=state.launchContext;
+  const enabled=!!c&&storageOK&&!startError;
+  $("headerClinic").textContent=c
+    ?c.clinicName+" 様"
+    :launch?launch.clinicName+" 様":"起動用カードを読み込んでください";
+  $("headerSerial").textContent=c
+    ?(startError?"読込エラー":c.serial)
+    :"未登録";
   $("headerSerialBlock").dataset.loaded=String(!!c&&!startError);
   $("patientForm").querySelectorAll("input,button").forEach(el=>el.disabled=!enabled);
   $("notice").classList.toggle("error",!!startError);
-  $("notice").textContent=startError||(c
-    ?"診療所情報を読み込みました。発行シリアル："+c.serial
-    :"①の管理QRを読み込んでください。標準カメラで読み取ってこの画面を開いた場合は、自動で引き継ぎます。");
+  $("notice").classList.toggle("success",!startError&&!!launch&&!c);
+  if(startError){
+    $("notice").textContent=startError;
+  }else if(c){
+    $("notice").textContent=
+      "登録情報を読み込みました。診療所："+c.clinicName
+      +" ／ シリアル："+c.serial
+      +"。患者情報を入力してください。";
+  }else if(launch){
+    $("notice").textContent=
+      "起動情報を読み込みました（"+launch.clinicName+"）。"
+      +"シリアル登録QRを読み込んでください。";
+  }else{
+    $("notice").textContent=
+      "起動用カードから②を開いてください。"
+      +"その後、「シリアル登録QRを読み込む」からカードのQRを読み込みます。";
+  }
+  $("readQR").disabled=!storageOK||!!startError;
+  $("modeLabel").textContent=c&&c.usageType==="subscription"
+    ?"◉ サブスクリプション"
+    :"◉ 単発・10回枠";
+  $("modeDescription").textContent=c&&c.usageType==="subscription"
+    ?"サブスクリプション区分情報を記録します。期限管理・自動停止は行いません。"
+    :"回数の消費・有効状態の管理は③患者アプリで行います。";
+  $("usageCount").value=c&&c.usageType==="subscription"?"無制限":"10";
+  $("usageBadge").textContent=c&&c.usageType==="subscription"
+    ?"サブスクリプション"
+    :"単発・10回枠";
 }
+
+// 新形式の起動用QRは ?setup=BASE64URL(JSON) を使用。
+// V8以前の ?clinic=BASE64URL(JSON) 形式も後方互換で読み込む。
 try{
-  const u=new URL(location.href),s=u.searchParams.get("clinic");
-  if(s&&storageOK){
-    const c=validateConfig(decode(s)),d=load();
-    d.active=c;localStorage.setItem(STORE,JSON.stringify(d));state=d;
+  const u=new URL(location.href);
+  const setup=u.searchParams.get("setup");
+  const legacy=u.searchParams.get("clinic");
+  if(storageOK&&setup){
+    const launch=validateLaunchContext(decode(setup));
+    const d=load();
+    d.launchContext=launch;
+    d.active=null;
+    localStorage.setItem(STORE,JSON.stringify(d));
+    state=d;
+    u.searchParams.delete("setup");
+    try{history.replaceState(null,"",u.href);}catch{}
+  }else if(storageOK&&legacy){
+    const c=validateConfig(decode(legacy));
+    const d=load();
+    d.active=c;
+    d.launchContext=null;
+    localStorage.setItem(STORE,JSON.stringify(d));
+    state=d;
     u.searchParams.delete("clinic");
     try{history.replaceState(null,"",u.href);}catch{}
   }
-}catch(e){startError=e.message;}
+}catch(e){
+  startError=e.message;
+}
+
 applyConfigUI();
 
-async function imageSupported(){
+let cameraStream=null;
+let cameraFrame=0;
+let cameraRunning=false;
+let cameraBusy=false;
+
+function stopCamera(){
+  cameraRunning=false;
+  if(cameraFrame){
+    cancelAnimationFrame(cameraFrame);
+    cameraFrame=0;
+  }
+  if(cameraStream){
+    cameraStream.getTracks().forEach(track=>track.stop());
+    cameraStream=null;
+  }
+  const video=$("cameraVideo");
+  if(video)video.srcObject=null;
+}
+
+async function startCamera(){
+  stopCamera();
+
+  if(!navigator.mediaDevices?.getUserMedia){
+    $("cameraStatus").textContent=
+      "このブラウザではカメラを利用できません。HTTPSで開くか、QRの内容を手入力してください。";
+    return;
+  }
+
+  if(typeof jsQR!=="function"){
+    $("cameraStatus").textContent=
+      "QR読取ライブラリを読み込めません。ネットワークを確認してください。";
+    return;
+  }
+
   try{
-    return typeof BarcodeDetector!=="undefined"&&(await BarcodeDetector.getSupportedFormats()).includes("qr_code");
-  }catch{return false;}
+    $("cameraStatus").textContent="カメラを起動しています…";
+    cameraStream=await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{facingMode:{ideal:"environment"}}
+    });
+
+    const video=$("cameraVideo");
+    video.srcObject=cameraStream;
+    await video.play();
+
+    cameraRunning=true;
+    $("cameraStatus").textContent=
+      "QRコードをカメラに映してください。読み取ると自動で登録します。";
+
+    const canvas=document.createElement("canvas");
+    const context=canvas.getContext("2d",{willReadFrequently:true});
+    if(!context)throw Error("カメラ画像を処理できません。");
+
+    const scan=()=>{
+      if(!cameraRunning)return;
+      cameraFrame=requestAnimationFrame(scan);
+
+      if(cameraBusy
+        ||video.readyState<HTMLMediaElement.HAVE_CURRENT_DATA
+        ||!video.videoWidth
+        ||!video.videoHeight)return;
+
+      cameraBusy=true;
+      try{
+        const scale=Math.min(1,1280/Math.max(video.videoWidth,video.videoHeight));
+        canvas.width=Math.max(1,Math.round(video.videoWidth*scale));
+        canvas.height=Math.max(1,Math.round(video.videoHeight*scale));
+        context.drawImage(video,0,0,canvas.width,canvas.height);
+
+        const image=context.getImageData(0,0,canvas.width,canvas.height);
+        const code=jsQR(image.data,image.width,image.height,{
+          inversionAttempts:"attemptBoth"
+        });
+
+        if(code?.data){
+          const value=code.data;
+          stopCamera();
+          $("cameraStatus").textContent="QRを読み取りました。内容を確認しています…";
+          acceptScan(value).catch(error=>{
+            $("cameraStatus").textContent=
+              "読み込みに失敗しました。QRを確認して、もう一度カメラを起動してください。";
+            toast(error.message);
+          });
+        }
+      }catch(error){
+        $("cameraStatus").textContent=
+          "カメラ画像を処理できません。カメラを再起動してください。";
+      }finally{
+        cameraBusy=false;
+      }
+    };
+    scan();
+  }catch(error){
+    stopCamera();
+    $("cameraStatus").textContent=
+      "カメラを起動できませんでした。カメラの使用を許可するか、QRの内容を手入力してください。";
+    toast("カメラを利用できません。ブラウザのカメラ許可とHTTPS接続を確認してください。");
+  }
 }
-$("readQR").onclick=async()=>{
-  $("incomingURL").value="";$("readDialog").showModal();
-  const supported=await imageSupported();$("selectImage").disabled=!supported;
-  $("imageSupport").textContent=supported
-    ?"このブラウザはQR画像読込に対応しています。画像は端末内で処理します。"
-    :"このブラウザはQR画像読込に非対応です。標準カメラで①のQRを読み取り、URLを貼り付けてください。";
+
+$("readQR").onclick=()=>{
+  $("incomingURL").value="";
+  $("cameraStatus").textContent=
+    "「カメラを起動」を押してQRコードを読み取ってください。";
+  $("readDialog").showModal();
 };
-$("closeRead").onclick=()=>$("readDialog").close();
-async function acceptURL(value){
-  const u=new URL(str(value,"起動URL",18000));
-  if(u.protocol!=="https:"||u.username||u.password)throw Error("①のHTTPS起動URLを使用してください。");
-  const c=validateConfig(decode(u.searchParams.get("clinic")));
-  if(!confirm(c.clinicName+"\nシリアル："+c.serial+"\nこの診療所情報を読み込みますか？"))return;
-  await transact(d=>d.active=c);
-  startError="";$("chart").value="";$("patientName").value="";
-  invalidate();applyConfigUI();$("readDialog").close();toast("診療所情報を読み込みました。");
+
+$("startCamera").onclick=startCamera;
+$("stopCamera").onclick=()=>{
+  stopCamera();
+  $("cameraStatus").textContent="カメラを停止しました。";
+};
+$("closeRead").onclick=()=>{
+  stopCamera();
+  $("readDialog").close();
+};
+$("readDialog").addEventListener("close",stopCamera);
+
+async function acceptScan(value){
+  const text=str(value,"QR情報",18000);
+
+  // シリアル登録QR：SL1.BASE64URL(JSON)
+  if(text.startsWith("SL1.")){
+    if(!state.launchContext)
+      throw Error("先に起動用カードから②を開いてください。");
+    const serial=validateSerialCard(decode(text.slice(4)));
+    if(serial.issueId!==state.launchContext.issueId)
+      throw Error("このシリアル登録QRは、現在読み込まれている起動用カードと一致しません。");
+    const c=validateConfig({
+      version:1,
+      environment:"production",
+      clinicName:state.launchContext.clinicName,
+      serial:serial.serial,
+      issuedOn:state.launchContext.issuedOn,
+      patientAppUrl:state.launchContext.patientAppUrl,
+      analysisAppUrl:state.launchContext.analysisAppUrl,
+      logUrl:state.launchContext.logUrl,
+      activationEmail:serial.activationEmail,
+      logShareEmail:state.launchContext.logShareEmail,
+      usageType:state.launchContext.usageType,
+      usageLimit:state.launchContext.usageLimit,
+      issueId:serial.issueId
+    });
+    if(!confirm(
+      c.clinicName+"\nシリアル："+c.serial
+      +"\n開通通知先："+c.activationEmail
+      +"\nこのシリアル登録情報を読み込みますか？"
+    ))return;
+    await transact(d=>{d.active=c;});
+    startError="";
+    $("chart").value="";
+    $("patientName").value="";
+    invalidate();
+    applyConfigUI();
+    $("readDialog").close();
+    toast("シリアル番号と開通通知先を登録しました。");
+    return;
+  }
+
+  // 起動用URL、または旧 ?clinic= URL
+  const u=new URL(text);
+  if(u.protocol!=="https:"||u.username||u.password)
+    throw Error("①が発行したHTTPSのQR情報を使用してください。");
+  const setup=u.searchParams.get("setup");
+  if(setup){
+    const launch=validateLaunchContext(decode(setup));
+    if(!confirm(launch.clinicName+"\n起動用情報を読み込みます。\n続けますか？"))return;
+    await transact(d=>{
+      d.launchContext=launch;
+      d.active=null;
+    });
+    startError="";
+    invalidate();
+    applyConfigUI();
+    $("readDialog").close();
+    toast("起動用情報を登録しました。次にシリアル登録QRを読み込んでください。");
+    return;
+  }
+  const old=u.searchParams.get("clinic");
+  if(old){
+    const c=validateConfig(decode(old));
+    if(!confirm(
+      c.clinicName+"\nシリアル："+c.serial
+      +"\nこの旧形式の管理QRを読み込みますか？"
+    ))return;
+    await transact(d=>{
+      d.active=c;
+      d.launchContext=null;
+    });
+    startError="";
+    invalidate();
+    applyConfigUI();
+    $("readDialog").close();
+    toast("診療所情報を読み込みました。");
+    return;
+  }
+  throw Error("起動用QRまたはシリアル登録QRではありません。");
 }
+
 $("loadURL").onclick=async()=>{
-  try{await acceptURL($("incomingURL").value.trim());}catch(e){toast(e.message);}
-};
-$("selectImage").onclick=()=>{$("imageFile").value="";$("imageFile").click();};
-$("imageFile").onchange=async()=>{
-  const f=$("imageFile").files[0];if(!f)return;let bitmap;
   try{
-    if(f.size>15*1024*1024||!f.type.startsWith("image/"))throw Error("15MB以下の画像を選択してください。");
-    if(!await imageSupported())throw Error("URL貼り付けを使用してください。");
-    bitmap=await createImageBitmap(f);
-    const c=document.createElement("canvas"),scale=Math.min(1,2400/Math.max(bitmap.width,bitmap.height));
-    c.width=Math.max(1,Math.round(bitmap.width*scale));c.height=Math.max(1,Math.round(bitmap.height*scale));
-    c.getContext("2d").drawImage(bitmap,0,0,c.width,c.height);
-    const codes=await new BarcodeDetector({formats:["qr_code"]}).detect(c);
-    const values=[...new Set(codes.map(x=>x.rawValue))];
-    if(values.length!==1)throw Error(values.length
-      ?"QRが複数あります。1つだけの画像を使用してください。"
-      :"QRを読み取れません。鮮明な画像かURL貼り付けを使用してください。");
-    await acceptURL(values[0]);
-  }catch(e){toast(e.message);}
-  finally{bitmap?.close();}
+    stopCamera();
+    await acceptScan($("incomingURL").value.trim());
+  }catch(e){
+    toast(e.message);
+  }
 };
-function addFact(l,v){
-  const dt=document.createElement("dt"),dd=document.createElement("dd");
-  dt.textContent=l;dd.textContent=v;$("confirmDetails").append(dt,dd);
+
+function addFact(label,value){
+  const dt=document.createElement("dt");
+  const dd=document.createElement("dd");
+  dt.textContent=label;
+  dd.textContent=value;
+  $("confirmDetails").append(dt,dd);
 }
+
 $("patientForm").onsubmit=e=>{
   e.preventDefault();
   try{
-    if(!state.active||startError)throw Error("管理QRを読み込んでください。");
-    const chart=str($("chart").value,"カルテ番号",64),name=str($("patientName").value,"患者名",80,true);
+    if(!state.active||startError)
+      throw Error("起動用QRとシリアル登録QRを読み込んでください。");
+    const chart=str($("chart").value,"カルテ番号",64);
+    const name=str($("patientName").value,"患者名",80,true);
     pending={clinic:{...state.active},chart,name};
     $("confirmDetails").replaceChildren();
-    addFact("診療所名",pending.clinic.clinicName);addFact("カルテ番号",chart);
-    addFact("患者名",name||"未入力");addFact("利用方式","単発・10回枠");
-    setStep(2);$("confirmDialog").showModal();
-  }catch(e){toast(e.message);}
+    addFact("診療所名",pending.clinic.clinicName);
+    addFact("シリアル番号",pending.clinic.serial);
+    addFact("カルテ番号",chart);
+    addFact("患者名",name||"未入力");
+    addFact("利用方式",pending.clinic.usageType==="subscription"?"サブスクリプション":"単発・10回枠");
+    addFact("開通通知先",pending.clinic.activationEmail||"未登録");
+    setStep(3);
+    $("confirmDialog").showModal();
+  }catch(e){
+    toast(e.message);
+  }
 };
+
 $("cancelConfirm").onclick=()=>$("confirmDialog").close();
-$("confirmDialog").addEventListener("close",()=>{pending=null;if(!result)setStep(1);});
+$("confirmDialog").addEventListener("close",()=>{
+  pending=null;
+  if(!result)setStep(state?.active?2:1);
+});
+
 function payload(c,chart,name){
   return{
-    version:1,environment:"production",env:"production",
-    clinicName:c.clinicName,serial:c.serial,issuedOn:c.issuedOn,
-    logUrl:c.logUrl,activationEmail:c.activationEmail,logShareEmail:c.logShareEmail,
-    chartNo:chart,patientName:name,usageMode:"single",usageCount:10,usageType:"single",maxApps:10
+    version:1,
+    environment:"production",
+    env:"production",
+    clinicName:c.clinicName,
+    serial:c.serial,
+    issuedOn:c.issuedOn,
+    logUrl:c.logUrl,
+    analysisAppUrl:c.analysisAppUrl,
+    activationEmail:c.activationEmail,
+    logShareEmail:c.logShareEmail,
+    chartNo:chart,
+    patientName:name,
+    usageMode:c.usageType==="subscription"?"subscription":"single",
+    usageCount:c.usageType==="subscription"?null:10,
+    usageType:c.usageType,
+    usageLimit:c.usageLimit,
+    maxApps:c.usageLimit
   };
 }
+
 function patientURL(c,p){
-  const u=new URL(c.patientAppUrl);u.hash="slp="+encode(p);return u.href;
+  const u=new URL(c.patientAppUrl);
+  u.hash="slp="+encode(p);
+  return u.href;
 }
+
 $("confirmIssue").onclick=async()=>{
   if(!pending||$("confirmIssue").disabled)return;
-  const button=$("confirmIssue");button.disabled=true;
+  const button=$("confirmIssue");
+  button.disabled=true;
   try{
-    const next={...pending},p=payload(next.clinic,next.chart,next.name),u=patientURL(next.clinic,p);
+    const next={...pending};
+    const p=payload(next.clinic,next.chart,next.name);
+    const u=patientURL(next.clinic,p);
     const probe=document.createElement("div");
     if(typeof QRCode==="undefined")throw Error("QRライブラリを読み込めません。");
     new QRCode(probe,{text:u,width:210,height:210,correctLevel:QRCode.CorrectLevel.M});
     const r={id:uid(),issuedAt:new Date().toISOString(),clinic:next.clinic,patient:p,url:u};
     await transact(d=>{
-      if(JSON.stringify(d.active)!==JSON.stringify(next.clinic))throw Error("診療所情報が変更されました。");
+      if(JSON.stringify(d.active)!==JSON.stringify(next.clinic))
+        throw Error("登録情報が変更されました。シリアルQRを読み直してください。");
       const old=d.records.find(x=>x.clinic.serial===next.clinic.serial);
       if(old&&old.patient.chartNo!==next.chart)
-        throw Error("このシリアルは別のカルテ番号に割当済みです。新しい管理QRを使用してください。");
+        throw Error("このシリアルは別のカルテ番号に割当済みです。新しいシリアル登録QRを使用してください。");
       const e={
-        eventId:uid(),type:old?"patient_qr_reissued":"patient_qr_issued",
-        occurredAt:r.issuedAt,source:"clinic-qr",appVersion:"V8",environment:"production",
-        clinicName:next.clinic.clinicName,serial:next.clinic.serial,
-        chartNo:next.chart,patientName:next.name
+        eventId:uid(),
+        type:old?"patient_qr_reissued":"patient_qr_issued",
+        occurredAt:r.issuedAt,
+        source:"clinic-qr",
+        appVersion:"V9",
+        environment:"production",
+        clinicName:next.clinic.clinicName,
+        serial:next.clinic.serial,
+        chartNo:next.chart,
+        patientName:next.name
       };
-      r.issuanceId=old?.issuanceId||e.eventId;e.issuanceId=r.issuanceId;
-      d.records.push(r);d.events.push(e);
+      r.issuanceId=old?.issuanceId||e.eventId;
+      e.issuanceId=r.issuanceId;
+      d.records.push(r);
+      d.events.push(e);
     });
-    result=r;displayResult();$("confirmDialog").close();setStep(3);toast("患者QRと発行実績を保存しました。");
-  }catch(e){toast(e.message);}
-  finally{button.disabled=false;}
+    result=r;
+    displayResult();
+    $("confirmDialog").close();
+    setStep(3);
+    toast("患者QRと発行実績を保存しました。");
+  }catch(e){
+    toast(e.message);
+  }finally{
+    button.disabled=false;
+  }
 };
-function patientLabel(r){return r.patient.patientName?r.patient.patientName+" 様":"患者名未入力";}
+
+function patientLabel(r){
+  return r.patient.patientName?r.patient.patientName+" 様":"患者名未入力";
+}
+
 function displayResult(){
   if(!result)return;
   drawQr("patientQr",result.url,210);
-  $("resultName").textContent=patientLabel(result);$("resultChart").textContent="カルテ番号："+result.patient.chartNo;
-  $("openPatient").href=result.url;$("activationMail").disabled=!result.clinic.activationEmail;
+  $("resultName").textContent=patientLabel(result);
+  $("resultChart").textContent="カルテ番号："+result.patient.chartNo;
+  $("openPatient").href=result.url;
+  $("activationMail").disabled=!result.clinic.activationEmail;
   $("mailStatus").textContent=result.clinic.activationEmail
-    ?"メールアプリで本文を確認し送信してください。":"開通通知の宛先は①で設定してください。";
-  $("emptyPreview").hidden=true;$("resultPreview").hidden=false;
+    ?"開通確認後、メールアプリで内容を確認して送信してください。"
+    :"開通通知先が登録されていません。";
+  $("emptyPreview").hidden=true;
+  $("resultPreview").hidden=false;
 }
+
 $("enlarge").onclick=()=>{
   if(!result)return;
   try{
     $("largeName").textContent=patientLabel(result);
     $("largeChart").textContent=result.clinic.clinicName+" ／ "+result.patient.chartNo;
-    drawQr("largeQr",result.url,330);$("largeDialog").showModal();
+    drawQr("largeQr",result.url,330);
+    $("largeDialog").showModal();
   }catch(e){toast(e.message);}
 };
 $("closeLarge").onclick=()=>$("largeDialog").close();
+
 $("print").onclick=async()=>{
   if(!result)return;
   try{
     $("printName").textContent=patientLabel(result);
-    $("printChart").textContent=result.clinic.clinicName+" ／ カルテ番号："+result.patient.chartNo+" ／ 単発・10回枠";
+    $("printChart").textContent=result.clinic.clinicName+" ／ カルテ番号："+result.patient.chartNo+" ／ "+
+      (result.clinic.usageType==="subscription"?"サブスクリプション":"単発・10回枠");
     $("printSerial").textContent="シリアル："+result.clinic.serial;
-    drawQr("printQr",result.url,340);await new Promise(r=>setTimeout(r,300));window.print();
+    drawQr("printQr",result.url,340);
+    await new Promise(r=>setTimeout(r,300));
+    window.print();
   }catch(e){toast(e.message);}
 };
+
 $("saveQR").onclick=()=>{
   if(!result)return;
   try{
-    const el=$("patientQr"),canvas=el.querySelector("canvas");
+    const el=$("patientQr");
+    const canvas=el.querySelector("canvas");
     if(canvas){
       canvas.toBlob(b=>{
         if(!b)return toast("画像を生成できません。");
-        const u=URL.createObjectURL(b),a=document.createElement("a");
-        a.href=u;a.download="SomnoLog-patient-QR.png";document.body.append(a);a.click();a.remove();
+        const u=URL.createObjectURL(b);
+        const a=document.createElement("a");
+        a.href=u;
+        a.download="SomnoLog-patient-QR.png";
+        document.body.append(a);a.click();a.remove();
         setTimeout(()=>URL.revokeObjectURL(u),60000);
       },"image/png");
       return;
     }
-    const img=el.querySelector("img");if(!img)throw Error("QR画像がありません。");
-    const a=document.createElement("a");a.href=img.src;a.download="SomnoLog-patient-QR.png";
+    const img=el.querySelector("img");
+    if(!img)throw Error("QR画像がありません。");
+    const a=document.createElement("a");
+    a.href=img.src;a.download="SomnoLog-patient-QR.png";
     document.body.append(a);a.click();a.remove();
   }catch(e){toast(e.message);}
 };
+
 $("activationMail").onclick=async()=>{
   if(!result||!result.clinic.activationEmail)return;
   if(!confirm("③の起動・開通確認後に送信してください。メールアプリを開きます。送信完了はこの画面では判定できません。"))return;
-  const r=result,button=$("activationMail");button.disabled=true;
+  const r=result;
+  const button=$("activationMail");
+  button.disabled=true;
   try{
     await transact(d=>d.events.push({
-      eventId:uid(),type:"activation_email_compose_requested",occurredAt:new Date().toISOString(),
-      source:"clinic-qr",appVersion:"V8",environment:"production",
-      clinicName:r.clinic.clinicName,serial:r.clinic.serial,issuanceId:r.issuanceId
+      eventId:uid(),
+      type:"activation_email_compose_requested",
+      occurredAt:new Date().toISOString(),
+      source:"clinic-qr",
+      appVersion:"V9",
+      environment:"production",
+      clinicName:r.clinic.clinicName,
+      serial:r.clinic.serial,
+      issuanceId:r.issuanceId
     }));
     const subject="睡眠記録サービス・使用開始／開通通知";
     const body=[
-      "②使用開始・患者用QR発行の通知","③の起動成功を自動判定した通知ではありません。","",
-      "診療所："+r.clinic.clinicName,"シリアル："+r.clinic.serial,
-      "発行識別番号："+r.issuanceId,"作成日時："+new Date().toISOString()
+      "②使用開始・患者用QR発行の通知",
+      "③の起動成功を自動判定した通知ではありません。",
+      "",
+      "診療所："+r.clinic.clinicName,
+      "シリアル："+r.clinic.serial,
+      "発行識別番号："+r.issuanceId,
+      "作成日時："+new Date().toISOString()
     ].join("\r\n");
     const a=document.createElement("a");
     a.href="mailto:"+r.clinic.activationEmail+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(body);
@@ -522,50 +970,73 @@ $("activationMail").onclick=async()=>{
   }catch(e){toast(e.message);}
   finally{button.disabled=false;}
 };
+
 function renderTools(){
   $("eventCount").textContent=state.events.length+"イベント。患者情報を含みます。";
-  $("history").innerHTML=`<table><thead><tr><th>日時</th><th>カルテ番号</th><th>患者名</th><th></th></tr></thead><tbody>${state.records.map((r,i)=>`<tr><td>${esc(r.issuedAt)}</td><td>${esc(r.patient.chartNo)}</td><td>${esc(r.patient.patientName)}</td><td><button class="btn outline" style="padding:6px" data-history="${i}">表示</button></td></tr>`).join("")}</tbody></table>`;
+  $("history").innerHTML=`<table>
+    <thead><tr><th>日時</th><th>カルテ番号</th><th>患者名</th><th></th></tr></thead>
+    <tbody>${state.records.map((r,i)=>`<tr>
+    <td>${esc(r.issuedAt)}</td><td>${esc(r.patient.chartNo)}</td><td>${esc(r.patient.patientName)}</td>
+    <td><button class="btn outline" style="padding:6px" data-history="${i}">表示</button></td>
+    </tr>`).join("")}</tbody></table>`;
   $("history").querySelectorAll("[data-history]").forEach(b=>b.onclick=async()=>{
     try{
       const r=state.records[Number(b.dataset.history)];
-      await transact(d=>d.active=r.clinic);startError="";result=r;applyConfigUI();
-      $("chart").value=r.patient.chartNo;$("patientName").value=r.patient.patientName;
-      $("checked").checked=false;displayResult();setStep(3);$("toolsDialog").close();
+      await transact(d=>{d.active=validateConfig(r.clinic);d.launchContext=null;});
+      startError="";
+      result=r;
+      applyConfigUI();
+      $("chart").value=r.patient.chartNo;
+      $("patientName").value=r.patient.patientName;
+      $("checked").checked=false;
+      displayResult();
+      setStep(3);
+      $("toolsDialog").close();
     }catch(e){toast(e.message);}
   });
   try{
-    const g=readGithub();$("gRepo").value=g?.repo||"";$("gBranch").value=g?.branch||"main";
-    $("gPath").value=g?.path||"";$("gAuto").checked=g?.auto||false;
+    const g=readGithub();
+    $("gRepo").value=g?.repo||"";
+    $("gBranch").value=g?.branch||"main";
+    $("gPath").value=g?.path||"";
+    $("gAuto").checked=g?.auto||false;
   }catch(e){toast(e.message);}
 }
+
 $("openTools").onclick=()=>{renderTools();$("toolsDialog").showModal();};
 $("closeTools").onclick=()=>$("toolsDialog").close();
+
 $("exportEvents").onclick=()=>{
   try{
     if(!confirm("患者情報を含む実績ファイルを安全な場所へ保存してください。"))return;
     const d=load();
-    save("SomnoLog-clinic-events-"+new Date().toISOString().slice(0,10)+".json",JSON.stringify({
-      format:"somnolog-events",version:1,source:"clinic-qr",appVersion:"V8",
-      exportedAt:new Date().toISOString(),events:d.events
-    },null,2));
+    save("SomnoLog-clinic-events-"+new Date().toISOString().slice(0,10)+".json",
+      JSON.stringify({format:"somnolog-events",version:1,source:"clinic-qr",appVersion:"V9",exportedAt:new Date().toISOString(),events:d.events},null,2));
   }catch(e){toast(e.message);}
 };
+
 $("backup").onclick=()=>{
   try{
-    save("SomnoLog-clinic-backup.json",JSON.stringify({format:"somnolog-clinic-backup",version:1,data:load()},null,2));
+    save("SomnoLog-clinic-backup.json",
+      JSON.stringify({format:"somnolog-clinic-backup",version:1,data:load()},null,2));
   }catch(e){toast(e.message);}
 };
 $("restore").onclick=()=>{$("backupFile").value="";$("backupFile").click();};
+
 $("backupFile").onchange=async()=>{
-  const f=$("backupFile").files[0];if(!f)return;
+  const f=$("backupFile").files[0];
+  if(!f)return;
   try{
     if(f.size>20*1024*1024)throw Error("20MB以下のファイルを使用してください。");
     const o=JSON.parse(await f.text());
     if(o.format!=="somnolog-clinic-backup"||o.version!==1)throw Error("②のバックアップではありません。");
-    const d=normalize(o.data),bindings=new Map();
+    const d=normalize(o.data);
+    const bindings=new Map();
     for(const r of d.records){
-      const c=validateConfig(r.clinic),chart=str(r.patient.chartNo,"カルテ番号",64);
-      const name=str(r.patient.patientName,"患者名",80,true),p=payload(c,chart,name);
+      const c=validateConfig(r.clinic);
+      const chart=str(r.patient.chartNo,"カルテ番号",64);
+      const name=str(r.patient.patientName,"患者名",80,true);
+      const p=payload(c,chart,name);
       if(JSON.stringify(p)!==JSON.stringify(r.patient)||r.url!==patientURL(c,p))throw Error("患者QRが不整合です。");
       if(bindings.has(c.serial)&&bindings.get(c.serial)!==chart)throw Error("患者割当が重複しています。");
       bindings.set(c.serial,chart);
@@ -575,52 +1046,64 @@ $("backupFile").onchange=async()=>{
       if(e.environment!=="production"||!Number.isFinite(Date.parse(e.occurredAt)))throw Error("実績が不正です。");
     }
     if(!confirm("現在の保存内容を置き換えます。先にバックアップしましたか？"))return;
-    await transact(n=>{Object.keys(n).forEach(k=>delete n[k]);Object.assign(n,d);});location.reload();
+    await transact(n=>{Object.keys(n).forEach(k=>delete n[k]);Object.assign(n,d);});
+    location.reload();
   }catch(e){toast(e.message);}
 };
+
 function githubConfig(o){
   if(!o||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(o.repo))throw Error("所有者／リポジトリを確認してください。");
-  const branch=str(o.branch,"ブランチ",160),path=str(o.path,"パス",500);
+  const branch=str(o.branch,"ブランチ",160);
+  const path=str(o.path,"パス",500);
   if(/[\s?#\\]/.test(branch)||!path.endsWith(".html")||path.startsWith("/")||path.split("/").some(x=>!x||x==="."||x===".."))
     throw Error("ブランチ・パスを確認してください。");
   return{repo:o.repo,branch,path,auto:o.auto===true};
 }
+
 function readGithub(){
   const s=localStorage.getItem(GKEY);
   return s?githubConfig(JSON.parse(s)):githubConfig(GITHUB_DEFAULT);
 }
+
 $("githubForm").onsubmit=e=>{
   e.preventDefault();
   try{
-    const g=githubConfig({
-      repo:$("gRepo").value.trim(),branch:$("gBranch").value.trim(),
-      path:$("gPath").value.trim(),auto:$("gAuto").checked
-    });
-    localStorage.setItem(GKEY,JSON.stringify(g));candidate=null;$("applyUpdate").hidden=true;
+    const g=githubConfig({repo:$("gRepo").value.trim(),branch:$("gBranch").value.trim(),path:$("gPath").value.trim(),auto:$("gAuto").checked});
+    localStorage.setItem(GKEY,JSON.stringify(g));
+    candidate=null;$("applyUpdate").hidden=true;
     toast("更新先を保存しました。");
   }catch(e){toast(e.message);}
 };
+
 async function fetchText(u){
-  const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),15000);
+  const ctrl=new AbortController();
+  const t=setTimeout(()=>ctrl.abort(),15000);
   try{
     const r=await fetch(u,{cache:"no-store",credentials:"omit",referrerPolicy:"no-referrer",signal:ctrl.signal});
     if(!r.ok)throw Error("GitHub HTTP "+r.status);
-    const reader=r.body.getReader(),chunks=[];let size=0;
+    const reader=r.body.getReader(),chunks=[];
+    let size=0;
     while(true){
-      const {done,value}=await reader.read();if(done)break;size+=value.length;
+      const {done,value}=await reader.read();
+      if(done)break;
+      size+=value.length;
       if(size>3000000){await reader.cancel();throw Error("更新データが大きすぎます。");}
       chunks.push(value);
     }
-    const a=new Uint8Array(size);let p=0;
+    const a=new Uint8Array(size);
+    let p=0;
     for(const c of chunks){a.set(c,p);p+=c.length;}
     return new TextDecoder("utf-8",{fatal:true}).decode(a);
   }finally{clearTimeout(t);}
 }
+
 async function checkUpdate(){
   if(updateBusy)return;
-  updateBusy=true;candidate=null;$("applyUpdate").hidden=true;$("checkUpdate").disabled=true;
+  updateBusy=true;candidate=null;
+  $("applyUpdate").hidden=true;$("checkUpdate").disabled=true;
   try{
-    const g=readGithub();if(!g)throw Error("更新先を設定してください。");
+    const g=readGithub();
+    if(!g)throw Error("更新先を設定してください。");
     $("updateStatus").textContent="最新コミットを確認しています。";
     const cacheBust=()=>Date.now().toString()+"-"+uid();
     const api=new URL("https://api.github.com/repos/"+g.repo+"/commits/"+encodeURIComponent(g.branch));
@@ -629,19 +1112,19 @@ async function checkUpdate(){
     if(!/^[a-f0-9]{40}$/.test(c.sha))throw Error("コミットSHAが不正です。");
     const raw=new URL("https://raw.githubusercontent.com/"+g.repo+"/"+c.sha+"/"+g.path.split("/").map(encodeURIComponent).join("/"));
     raw.searchParams.set("_cb",cacheBust());
-    const source=await fetchText(raw.href),d=new DOMParser().parseFromString(source,"text/html");
+    const source=await fetchText(raw.href);
+    const d=new DOMParser().parseFromString(source,"text/html");
     const n=Number(d.querySelector('meta[name="somnolog-version"]')?.content);
     if(d.querySelector('meta[name="somnolog-app"]')?.content!=="clinic"||!Number.isSafeInteger(n))
       throw Error("②の更新HTMLではありません。");
-    if(n<=VERSION){
-      $("updateStatus").textContent="新しい版はありません。\nコミット："+c.sha;return;
-    }
+    if(n<=VERSION){$("updateStatus").textContent="新しい版はありません。\nコミット："+c.sha;return;}
     candidate={source,sha:c.sha,title:d.title,repo:g.repo};
     $("applyUpdate").hidden=false;
     $("updateStatus").textContent=d.title+"\nコミット："+c.sha+"\n確認後に適用してください。";
   }catch(e){$("updateStatus").textContent="更新確認："+e.message;}
   finally{updateBusy=false;$("checkUpdate").disabled=false;}
 }
+
 $("checkUpdate").onclick=checkUpdate;
 $("applyUpdate").onclick=()=>{
   if(!candidate)return;
@@ -649,9 +1132,12 @@ $("applyUpdate").onclick=()=>{
   const source=candidate.source;
   document.open();document.write(source);document.close();
 };
+
 window.addEventListener("storage",e=>{
   if(e.key===STORE)toast("別タブでデータが変更されました。再読み込みしてください。");
 });
+
+applyConfigUI();
 try{if(readGithub()?.auto)checkUpdate();}
 catch(e){$("updateStatus").textContent=e.message;}
 </script>
