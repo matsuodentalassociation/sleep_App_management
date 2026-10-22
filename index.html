@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="somnolog-app" content="clinic">
-<meta name="somnolog-version" content="9">
-<title>② 診療所用患者QR発行 V9</title>
+<meta name="somnolog-version" content="10">
+<title>② 診療所用患者QR発行 V10</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" referrerpolicy="no-referrer"></script>
 <style>
@@ -46,7 +46,6 @@ p{line-height:1.8;margin:8px 0}
 .field{margin-top:22px}
 label{display:block;font-weight:700;font-size:13px}
 .required{color:#a65b3b;background:#fff0e8;font-size:10px;padding:2px 6px;border-radius:4px;margin-left:8px}
-.optional{color:#87969f;font-size:11px;font-weight:400;margin-left:8px}
 input,textarea{width:100%;margin-top:9px;border:1px solid #c8d6dd;background:white;border-radius:8px;padding:12px;color:var(--ink)}
 input:focus,textarea:focus{outline:3px solid #cae6e3;border-color:var(--brand)}
 small{display:block;font-size:11px;color:var(--muted);font-weight:400;line-height:1.7;margin-top:7px}
@@ -110,7 +109,7 @@ body{background:white}
 </style>
 </head>
 <body>
-<div class="version">② 診療所用患者QR発行 V9</div>
+<div class="version">② 診療所用患者QR発行 V10</div>
 <main>
 <div class="heading">
 <div class="headingline">
@@ -149,8 +148,8 @@ body{background:white}
 <small>数字以外も受け付けます。カードの手書き欄とは別に入力してください。</small>
 </div>
 <div class="field">
-<label for="patientName">患者名<span class="optional">任意</span></label>
-<input id="patientName" maxlength="80" autocomplete="off" placeholder="患者名を入力">
+<label for="patientName">患者名<span class="required">必須</span></label>
+<input id="patientName" maxlength="80" required autocomplete="off" placeholder="患者名を入力">
 <small>入力した情報は患者用QRと発行実績に含まれます。</small>
 </div>
 <div class="field">
@@ -259,7 +258,7 @@ body{background:white}
 const $=id=>document.getElementById(id);
 const STORE="somnolog.clinic.production.v7";
 const GKEY="somnolog.clinic.github";
-const VERSION=9;
+const VERSION=10;
 const GITHUB_DEFAULT={
   repo:"matsuodentalassociation/sleep_App_management",
   branch:"main",
@@ -493,13 +492,13 @@ try{
     const d=load();d.launchContext=launch;d.active=null;
     localStorage.setItem(STORE,JSON.stringify(d));state=d;
     u.searchParams.delete("setup");
-    try{history.replaceState(null,"",u.href);}catch{}
+    try{window.history.replaceState(null,"",u.href);}catch{}
   }else if(storageOK&&legacy){
     const c=validateConfig(decode(legacy));
     const d=load();d.active=c;d.launchContext=null;
     localStorage.setItem(STORE,JSON.stringify(d));state=d;
     u.searchParams.delete("clinic");
-    try{history.replaceState(null,"",u.href);}catch{}
+    try{window.history.replaceState(null,"",u.href);}catch{}
   }
 }catch(e){startError=e.message;}
 
@@ -669,13 +668,13 @@ $("patientForm").onsubmit=e=>{
   try{
     if(!state.active||startError)throw Error("起動用QRとシリアル登録QRを読み込んでください。");
     const chart=str($("chart").value,"カルテ番号",64);
-    const name=str($("patientName").value,"患者名",80,true);
+    const name=str($("patientName").value,"患者名",80);
     pending={clinic:{...state.active},chart,name};
     $("confirmDetails").replaceChildren();
     addFact("診療所名",pending.clinic.clinicName);
     addFact("シリアル番号",pending.clinic.serial);
     addFact("カルテ番号",chart);
-    addFact("患者名",name||"未入力");
+    addFact("患者名",name);
     addFact("利用方式",pending.clinic.usageType==="subscription"?"サブスクリプション":"単発・10回枠");
     addFact("開通通知先",pending.clinic.activationEmail||"未登録");
     setStep(3);$("confirmDialog").showModal();
@@ -692,6 +691,7 @@ function payload(c,chart,name){
   return{
     version:1,environment:"production",env:"production",
     clinicName:c.clinicName,serial:c.serial,issuedOn:c.issuedOn,
+    issueId:c.issueId,
     logUrl:c.logUrl,analysisAppUrl:c.analysisAppUrl,
     activationEmail:c.activationEmail,logShareEmail:c.logShareEmail,
     chartNo:chart,patientName:name,
@@ -725,7 +725,7 @@ $("confirmIssue").onclick=async()=>{
         throw Error("このシリアルは別のカルテ番号に割当済みです。新しいシリアル登録QRを使用してください。");
       const e={
         eventId:uid(),type:old?"patient_qr_reissued":"patient_qr_issued",
-        occurredAt:r.issuedAt,source:"clinic-qr",appVersion:"V9",
+        occurredAt:r.issuedAt,source:"clinic-qr",appVersion:"V10",
         environment:"production",clinicName:next.clinic.clinicName,
         serial:next.clinic.serial,chartNo:next.chart,patientName:next.name
       };
@@ -805,7 +805,7 @@ $("activationMail").onclick=async()=>{
   try{
     await transact(d=>d.events.push({
       eventId:uid(),type:"activation_email_compose_requested",
-      occurredAt:new Date().toISOString(),source:"clinic-qr",appVersion:"V9",
+      occurredAt:new Date().toISOString(),source:"clinic-qr",appVersion:"V10",
       environment:"production",clinicName:r.clinic.clinicName,
       serial:r.clinic.serial,issuanceId:r.issuanceId
     }));
@@ -855,7 +855,7 @@ $("exportEvents").onclick=()=>{
     if(!confirm("患者情報を含む実績ファイルを安全な場所へ保存してください。"))return;
     const d=load();
     save("SomnoLog-clinic-events-"+new Date().toISOString().slice(0,10)+".json",
-      JSON.stringify({format:"somnolog-events",version:1,source:"clinic-qr",appVersion:"V9",exportedAt:new Date().toISOString(),events:d.events},null,2));
+      JSON.stringify({format:"somnolog-events",version:1,source:"clinic-qr",appVersion:"V10",exportedAt:new Date().toISOString(),events:d.events},null,2));
   }catch(e){toast(e.message);}
 };
 
@@ -875,10 +875,20 @@ $("backupFile").onchange=async()=>{
     for(const r of d.records){
       const c=validateConfig(r.clinic);
       const chart=str(r.patient.chartNo,"カルテ番号",64);
+      // V9発行済みQRでは患者名が任意だったため、復元時は旧記録を許容する。
       const name=str(r.patient.patientName,"患者名",80,true);
       const p=payload(c,chart,name);
-      if(JSON.stringify(p)!==JSON.stringify(r.patient)||r.url!==patientURL(c,p))throw Error("患者QRが不整合です。");
-      if(bindings.has(c.serial)&&bindings.get(c.serial)!==chart)throw Error("患者割当が重複しています。");
+
+      // V9発行済みQRにissueIdはない。元のJSONとURLを旧形式で照合する。
+      if(!Object.prototype.hasOwnProperty.call(r.patient,"issueId"))
+        delete p.issueId;
+
+      if(JSON.stringify(p)!==JSON.stringify(r.patient)
+        ||r.url!==patientURL(c,p))
+        throw Error("患者QRが不整合です。");
+
+      if(bindings.has(c.serial)&&bindings.get(c.serial)!==chart)
+        throw Error("患者割当が重複しています。");
       bindings.set(c.serial,chart);
     }
     for(const e of d.events){
