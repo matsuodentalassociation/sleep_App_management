@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="somnolog-app" content="clinic">
-<meta name="somnolog-version" content="12">
-<title>② 診療所用患者QR発行 V12</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js" referrerpolicy="no-referrer"></script>
+<meta name="somnolog-version" content="13">
+<title>② 診療所用患者QR発行 V13</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js?v=13" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js?v=13" referrerpolicy="no-referrer"></script>
 <style>
 :root{--ink:#203c4c;--muted:#70828d;--brand:#137e83;--line:#dce6e9;--bg:#f2f6f7;--pale:#e9f5f3}
 *{box-sizing:border-box}
@@ -17,6 +17,7 @@ button,input,textarea{font:inherit}
 button{cursor:pointer}
 button:disabled{opacity:.45;cursor:not-allowed}
 .version{background:#203c4c;color:white;padding:8px;text-align:center;font-size:12px;font-weight:700}
+.version .commit{margin-left:10px;font-weight:400;opacity:.8}
 main{max-width:1080px;margin:0 auto;padding:24px 24px 50px}
 .heading{margin-bottom:22px}
 .headingline{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
@@ -110,7 +111,7 @@ body{background:white}
 </style>
 </head>
 <body>
-<div class="version">② 診療所用患者QR発行 V12</div>
+<div class="version"><span id="versionLabel">② 診療所用患者QR発行 V13</span><span class="commit" id="commitLabel"></span></div>
 <main>
 <div class="heading">
 <div class="headingline">
@@ -260,8 +261,8 @@ body{background:white}
 const $=id=>document.getElementById(id);
 const STORE="somnolog.clinic.production.v7";
 const GKEY="somnolog.clinic.github";
-const VERSION=12;
-const APP_VERSION="V12";
+const VERSION=13;
+const APP_VERSION="V13";
 const GITHUB_DEFAULT={
   repo:"matsuodentalassociation/sleep_App_management",
   branch:"main",
@@ -276,6 +277,10 @@ function toast(s){
   $("toast").hidden=false;
   clearTimeout(timer);
   timer=setTimeout(()=>$("toast").hidden=true,6500);
+}
+
+function setCommit(sha){
+  $("commitLabel").textContent=sha?"commit "+sha.slice(0,7):"";
 }
 
 function str(v,label,max,optional=false){
@@ -941,11 +946,17 @@ $("githubForm").onsubmit=e=>{
   }catch(e){toast(e.message);}
 };
 
+// キャッシュバスティング付きで取得し、本文がない応答にも対応する
 async function fetchText(u){
   const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),15000);
   try{
     const r=await fetch(u,{cache:"no-store",credentials:"omit",referrerPolicy:"no-referrer",signal:ctrl.signal});
     if(!r.ok)throw Error("GitHub HTTP "+r.status);
+    if(!r.body){
+      const text=await r.text();
+      if(text.length>3000000)throw Error("更新データが大きすぎます。");
+      return text;
+    }
     const reader=r.body.getReader(),chunks=[];let size=0;
     while(true){
       const {done,value}=await reader.read();if(done)break;
@@ -959,6 +970,7 @@ async function fetchText(u){
   }finally{clearTimeout(t);}
 }
 
+// GitHubの最新コミットを取得し、そのコミットのHTMLを動的に取得する
 async function checkUpdate(){
   if(updateBusy)return;
   updateBusy=true;candidate=null;
@@ -967,7 +979,7 @@ async function checkUpdate(){
     const g=readGithub();
     if(!g)throw Error("更新先を設定してください。");
     $("updateStatus").textContent="最新コミットを確認しています。";
-    const cacheBust=()=>Date.now().toString()+"-"+uid();
+    const cacheBust=()=>Date.now().toString(36)+"-"+uid();
     const api=new URL("https://api.github.com/repos/"+g.repo+"/commits/"+encodeURIComponent(g.branch));
     api.searchParams.set("_cb",cacheBust());
     const c=JSON.parse(await fetchText(api.href));
@@ -979,7 +991,10 @@ async function checkUpdate(){
     const n=Number(d.querySelector('meta[name="somnolog-version"]')?.content);
     if(d.querySelector('meta[name="somnolog-app"]')?.content!=="clinic"||!Number.isSafeInteger(n))
       throw Error("②の更新HTMLではありません。");
-    if(n<=VERSION){$("updateStatus").textContent="新しい版はありません。\nコミット："+c.sha;return;}
+    if(n<=VERSION){
+      $("updateStatus").textContent="新しい版はありません（現在 "+APP_VERSION+"）。\nコミット："+c.sha;
+      return;
+    }
     candidate={source,sha:c.sha,title:d.title,repo:g.repo};
     $("applyUpdate").hidden=false;
     $("updateStatus").textContent=d.title+"\nコミット："+c.sha+"\n確認後に適用してください。";
