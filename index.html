@@ -5,11 +5,32 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer">
 <meta name="somnolog-app" content="clinic">
-<meta name="somnolog-version" content="16">
+<meta name="somnolog-version" content="17">
 <meta name="theme-color" content="#203c4c">
-<title>② 診療所用患者QR発行 V16</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js?v=16" referrerpolicy="no-referrer"></script>
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js?v=16" referrerpolicy="no-referrer"></script>
+<title>② 診療所用患者QR発行 V17</title>
+<script>
+(function(){
+  "use strict";
+  const CACHE_KEY="somnolog.clinic.updateCache.v1";
+  try{
+    const cached=JSON.parse(localStorage.getItem(CACHE_KEY)||"null");
+    if(!cached||typeof cached.source!=="string"||!cached.commit)return;
+
+    const currentUrl=new URL(location.href);
+    if(currentUrl.searchParams.get("__somno_commit")===cached.commit)return;
+
+    currentUrl.searchParams.set("__somno_commit",cached.commit);
+    history.replaceState(null,"",currentUrl.href);
+    document.open();
+    document.write(cached.source);
+    document.close();
+  }catch(error){
+    console.warn("保存済み更新版を読み込めませんでした。",error);
+  }
+})();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js?v=17" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js?v=17" referrerpolicy="no-referrer"></script>
 <style>
 :root{--ink:#203c4c;--muted:#70828d;--brand:#137e83;--line:#dce6e9;--bg:#f2f6f7;--pale:#e9f5f3}
 *{box-sizing:border-box}
@@ -117,7 +138,7 @@ th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-a
 </style>
 </head>
 <body>
-<div class="version"><span id="versionLabel">② 診療所用患者QR発行 V16</span><span class="commit" id="commitLabel"></span></div>
+<div class="version"><span id="versionLabel">② 診療所用患者QR発行 V17</span><span class="commit" id="commitLabel"></span></div>
 <main>
   <div class="heading">
     <div class="headingline">
@@ -287,8 +308,10 @@ th,td{text-align:left;padding:9px;border-bottom:1px solid var(--line);vertical-a
 const $=id=>document.getElementById(id);
 const STORE="somnolog.clinic.production.v7";
 const GKEY="somnolog.clinic.github";
-const VERSION=16;
-const APP_VERSION="V16";
+const UPDATE_CACHE_KEY="somnolog.clinic.updateCache.v1";
+const UPDATE_MAX_BYTES=3000000;
+const VERSION=17;
+const APP_VERSION="V17";
 const MAX_BUNDLE_ITEMS=10;
 const BUNDLE_DEFLATE_PREFIX="SB2Z.";
 const BUNDLE_PLAIN_PREFIX="SB2.";
@@ -662,8 +685,6 @@ try{
     try{window.history.replaceState(null,"",u.href);}catch{}
   }
 }catch(e){startError=e.message;}
-
-applyConfigUI();
 
 function addConfigsToPool(d,configs,bundleId){
   const used=new Set([...d.slots.map(s=>s.serial),...d.records.map(r=>r.clinic?.serial).filter(Boolean)]);
@@ -1327,16 +1348,21 @@ $("backupFile").onchange=async()=>{
 };
 
 function githubConfig(o){
-  if(!o||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(o.repo))throw Error("所有者／リポジトリを確認してください。");
-  const branch=str(o.branch,"ブランチ",160),path=str(o.path,"パス",500);
-  if(/[\s?#\\]/.test(branch)||!path.endsWith(".html")||path.startsWith("/")||path.split("/").some(x=>!x||x==="."||x===".."))
-    throw Error("ブランチ・パスを確認してください。");
+  if(!o||!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(o.repo))
+    throw Error("所有者／リポジトリを確認してください。");
+  const branch=str(o.branch,"ブランチ",160);
+  const path=str(o.path,"HTMLパス",500);
+  if(/[\s?#\\]/.test(branch)
+    ||path.startsWith("/")
+    ||!path.toLowerCase().endsWith(".html")
+    ||path.split("/").some(part=>!part||part==="."||part===".."))
+    throw Error("ブランチ・HTMLパスを確認してください。");
   return{repo:o.repo,branch,path,auto:o.auto===true};
 }
 
 function readGithub(){
-  const s=localStorage.getItem(GKEY);
-  return s?githubConfig(JSON.parse(s)):githubConfig(GITHUB_DEFAULT);
+  const raw=localStorage.getItem(GKEY);
+  return raw?githubConfig(JSON.parse(raw)):githubConfig(GITHUB_DEFAULT);
 }
 
 $("githubForm").onsubmit=e=>{
@@ -1351,86 +1377,260 @@ $("githubForm").onsubmit=e=>{
     localStorage.setItem(GKEY,JSON.stringify(g));
     candidate=null;
     $("applyUpdate").hidden=true;
-    toast("更新先を保存しました。");
+    $("updateStatus").textContent="";
+    toast("GitHub更新先を保存しました。");
   }catch(e){toast(e.message);}
 };
 
-async function fetchText(u){
-  const ctrl=new AbortController(),t=setTimeout(()=>ctrl.abort(),15000);
+async function fetchText(url){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),20000);
+
   try{
-    const r=await fetch(u,{cache:"no-store",credentials:"omit",referrerPolicy:"no-referrer",signal:ctrl.signal});
-    if(!r.ok)throw Error("GitHub HTTP "+r.status);
-    const len=Number(r.headers.get("content-length")||0);
-    if(len>3000000)throw Error("更新データが大きすぎます。");
-    if(!r.body){
-      const text=await r.text();
-      if(new TextEncoder().encode(text).length>3000000)throw Error("更新データが大きすぎます。");
+    const response=await fetch(url,{
+      method:"GET",
+      cache:"no-store",
+      credentials:"omit",
+      referrerPolicy:"no-referrer",
+      headers:{"Cache-Control":"no-cache"},
+      signal:controller.signal
+    });
+
+    if(!response.ok)throw Error("GitHub HTTP "+response.status);
+    const contentLength=Number(response.headers.get("content-length")||0);
+    if(contentLength>UPDATE_MAX_BYTES)throw Error("更新HTMLが大きすぎます。");
+
+    if(!response.body){
+      const text=await response.text();
+      if(new TextEncoder().encode(text).byteLength>UPDATE_MAX_BYTES)
+        throw Error("更新データが大きすぎます。");
       return text;
     }
-    const bytes=await readLimitedStream(r.body,3000000,"更新データ");
-    return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
-  }finally{clearTimeout(t);}
-}
 
-async function resolveLatestRef(g){
-  try{
-    const api=new URL("https://api.github.com/repos/"+g.repo+"/commits/"+encodeURIComponent(g.branch));
-    api.searchParams.set("_cb",cacheBust());
-    const c=JSON.parse(await fetchText(api.href));
-    if(!/^[a-f0-9]{40}$/i.test(c.sha))throw Error("コミットSHAが不正です。");
-    return{ref:c.sha,label:"コミット："+c.sha};
-  }catch(e){
-    return{ref:g.branch.split("/").map(encodeURIComponent).join("/"),label:"ブランチ："+g.branch+"（コミットID取得不可："+e.message+"）"};
+    const reader=response.body.getReader();
+    const chunks=[];
+    let total=0;
+
+    try{
+      while(true){
+        const{done,value}=await reader.read();
+        if(done)break;
+        total+=value.byteLength;
+        if(total>UPDATE_MAX_BYTES){
+          await reader.cancel();
+          throw Error("更新データが大きすぎます。");
+        }
+        chunks.push(value);
+      }
+    }finally{
+      try{reader.releaseLock();}catch{}
+    }
+
+    const bytes=new Uint8Array(total);
+    let offset=0;
+    for(const chunk of chunks){
+      bytes.set(chunk,offset);
+      offset+=chunk.byteLength;
+    }
+    return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+  }finally{
+    clearTimeout(timeout);
   }
 }
 
-async function checkUpdate(){
+async function getLatestCommit(config){
+  const api=new URL(
+    "https://api.github.com/repos/"
+    +config.repo
+    +"/commits/"
+    +encodeURIComponent(config.branch)
+  );
+  api.searchParams.set("_cb",cacheBust());
+
+  const json=await fetchText(api.href);
+  let commit;
+  try{commit=JSON.parse(json);}
+  catch{throw Error("GitHub APIの応答を解析できません。");}
+
+  const sha=commit&&commit.sha;
+  if(typeof sha!=="string"||!/^[a-f0-9]{40}$/i.test(sha))
+    throw Error("有効な最新コミットIDを取得できませんでした。");
+
+  return sha.toLowerCase();
+}
+
+function buildRawUrl(config,commit){
+  const path=config.path.split("/").map(encodeURIComponent).join("/");
+  const url=new URL(
+    "https://raw.githubusercontent.com/"
+    +config.repo+"/"
+    +commit+"/"
+    +path
+  );
+  url.searchParams.set("_cb",cacheBust());
+  return url.href;
+}
+
+function readUpdateCache(){
+  try{
+    const cached=JSON.parse(localStorage.getItem(UPDATE_CACHE_KEY)||"null");
+    if(cached&&typeof cached.commit==="string"&&typeof cached.source==="string")
+      return cached;
+  }catch{}
+  return null;
+}
+
+function validateUpdateSource(source){
+  const parsed=new DOMParser().parseFromString(source,"text/html");
+  const app=parsed.querySelector('meta[name="somnolog-app"]')?.content;
+  const version=Number(parsed.querySelector('meta[name="somnolog-version"]')?.content);
+
+  if(app!=="clinic")throw Error("取得したHTMLは②診療所用アプリではありません。");
+  if(!Number.isSafeInteger(version)||version<1)throw Error("取得したHTMLのバージョン情報が不正です。");
+  if(!parsed.querySelector("script"))throw Error("取得したHTMLにアプリのスクリプトがありません。");
+
+  return{title:parsed.title||"② 診療所用アプリ",version};
+}
+
+async function checkUpdate(options={}){
   if(updateBusy)return;
+
   updateBusy=true;
   candidate=null;
   $("applyUpdate").hidden=true;
   $("checkUpdate").disabled=true;
+
+  const automatic=options.automatic===true;
+
   try{
-    const g=readGithub();
-    $("updateStatus").textContent="最新版を確認しています…";
-    const latest=await resolveLatestRef(g);
-    const path=g.path.split("/").map(encodeURIComponent).join("/");
-    const raw=new URL("https://raw.githubusercontent.com/"+g.repo+"/"+latest.ref+"/"+path);
-    raw.searchParams.set("_cb",cacheBust());
-    const source=await fetchText(raw.href);
-    const d=new DOMParser().parseFromString(source,"text/html");
-    const app=d.querySelector('meta[name="somnolog-app"]')?.content;
-    const n=Number(d.querySelector('meta[name="somnolog-version"]')?.content);
-    if(app!=="clinic"||!Number.isSafeInteger(n))throw Error("②の更新HTMLではありません。");
-    if(n<=VERSION){
-      $("updateStatus").textContent="新しい版はありません（現在 "+APP_VERSION+"、取得版 "+n+"）。\n"+latest.label;
+    const config=readGithub();
+    $("updateStatus").textContent="GitHubの最新コミットを確認しています…";
+
+    const commit=await getLatestCommit(config);
+    const cached=readUpdateCache();
+
+    if(cached&&cached.commit===commit){
+      $("updateStatus").textContent=
+        "適用済みの最新版です。\nコミット："+commit;
       return;
     }
-    candidate={source,label:latest.label,title:d.title,repo:g.repo,version:n};
+
+    $("updateStatus").textContent=
+      "最新コミットのHTMLを取得しています…\nコミット："+commit;
+
+    const source=await fetchText(buildRawUrl(config,commit));
+    const info=validateUpdateSource(source);
+
+    candidate={
+      source,
+      commit,
+      title:info.title,
+      version:info.version,
+      repo:config.repo
+    };
+
     $("applyUpdate").hidden=false;
-    $("updateStatus").textContent=d.title+"（版 "+n+"）\n"+latest.label+"\n確認後に適用してください。";
-  }catch(e){$("updateStatus").textContent="更新確認："+e.message;}
-  finally{
+    $("updateStatus").textContent=
+      info.title
+      +"（V"+info.version+"）\n"
+      +"リポジトリ："+config.repo+"\n"
+      +"最新コミット："+commit+"\n"
+      +"取得したHTMLを確認後に適用できます。";
+
+    if(automatic){
+      const accepted=confirm(
+        "②の最新版をGitHubから取得しました。\n\n"
+        +info.title+"\n"
+        +"表示バージョン：V"+info.version+"\n"
+        +"リポジトリ："+config.repo+"\n"
+        +"コミット："+commit+"\n\n"
+        +"この更新元を信頼して適用しますか？\n"
+        +"更新後、②のページが再読み込みされます。"
+      );
+      if(accepted)applyCandidateUpdate(true);
+    }else{
+      toast("GitHubから最新版を取得しました。確認後、「取得した最新版を適用」を押してください。");
+    }
+  }catch(error){
+    $("updateStatus").textContent=
+      "更新を確認できませんでした。\n"
+      +error.message
+      +"\n\nGitHubリポジトリ、ブランチ、HTMLパス、公開状態を確認してください。";
+  }finally{
     updateBusy=false;
     $("checkUpdate").disabled=false;
   }
 }
 
-$("checkUpdate").onclick=checkUpdate;
-$("applyUpdate").onclick=()=>{
-  if(!candidate)return;
-  if(!confirm(candidate.repo+"\n"+candidate.title+"\n版 "+candidate.version+"\n"+candidate.label+"\n信頼する更新先ですか？未保存の入力は失われます。必要なバックアップを保存してから適用してください。"))return;
-  const source=candidate.source;
-  document.open();document.write(source);document.close();
-};
+function applyCandidateUpdate(alreadyConfirmed=false){
+  if(!candidate){
+    toast("適用する更新がありません。先に最新版を確認してください。");
+    return;
+  }
+
+  if(!alreadyConfirmed){
+    const accepted=confirm(
+      candidate.repo+"\n"
+      +"V"+candidate.version+"\n"
+      +"コミット："+candidate.commit+"\n\n"
+      +"このGitHub更新を適用しますか？\n"
+      +"未保存の入力がある場合は、先に保存してください。"
+    );
+    if(!accepted)return;
+  }
+
+  try{
+    try{
+      localStorage.setItem(
+        UPDATE_CACHE_KEY,
+        JSON.stringify({
+          commit:candidate.commit,
+          source:candidate.source,
+          savedAt:new Date().toISOString(),
+          repo:candidate.repo
+        })
+      );
+    }catch(error){
+      console.warn("更新HTMLをローカル保存できませんでした。",error);
+      toast("更新HTMLを保存できませんでした。このタブでのみ適用します。");
+    }
+
+    const source=candidate.source;
+    const url=new URL(location.href);
+    url.searchParams.set("__somno_commit",candidate.commit);
+    try{history.replaceState(null,"",url.href);}catch{}
+
+    document.open();
+    document.write(source);
+    document.close();
+  }catch(error){
+    $("updateStatus").textContent="更新を適用できませんでした："+error.message;
+    toast("更新を適用できませんでした。");
+  }
+}
+
+$("checkUpdate").onclick=()=>checkUpdate({automatic:false});
+$("applyUpdate").onclick=()=>applyCandidateUpdate(false);
 
 window.addEventListener("storage",e=>{
   if(e.key===STORE)toast("別タブでデータが変更されました。再読み込みしてください。");
 });
 
 applyConfigUI();
-try{if(readGithub()?.auto)checkUpdate();}
-catch(e){$("updateStatus").textContent=e.message;}
+
+try{
+  const currentUrl=new URL(location.href);
+  const appliedCommit=currentUrl.searchParams.get("__somno_commit");
+  $("commitLabel").textContent=appliedCommit
+    ?"適用コミット："+appliedCommit.slice(0,12)
+    :"";
+}catch{}
+
+try{
+  if(readGithub()?.auto)checkUpdate({automatic:true});
+}catch(e){
+  $("updateStatus").textContent=e.message;
+}
 </script>
 </body>
 </html>
